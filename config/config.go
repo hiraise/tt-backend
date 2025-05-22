@@ -1,13 +1,16 @@
 package config
 
 import (
+	"fmt"
+
 	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
 )
 
 type AppConfig struct {
-	Debug    bool   `env:"APP_DEBUG,required"`
-	RootPath string `env:"APP_ROOT_PATH,required"`
+	Debug                  bool   `env:"APP_DEBUG,required"`
+	RootPath               string `env:"APP_ROOT_PATH,required"`
+	AccVerificationEnabled bool   `env:"APP_ACC_VERIFICATION_ENABLED" envDefault:"true"`
 }
 
 type PGConfig struct {
@@ -37,6 +40,15 @@ type Config struct {
 	PG   PGConfig
 	Auth AuthConfig
 	Docs Docs
+	SMTP SMTP
+}
+
+type SMTP struct {
+	Host     string `env:"SMTP_HOST"`
+	Port     int    `env:"SMTP_PORT"`
+	User     string `env:"SMTP_USER"`
+	Password string `env:"SMTP_PASSWORD"`
+	Sender   string `env:"SMTP_SENDER"` // may be unset when, sender is User
 }
 
 func New() (*Config, error) {
@@ -44,6 +56,12 @@ func New() (*Config, error) {
 	cfg := &Config{}
 	if err := env.Parse(cfg); err != nil {
 		return nil, err
+	}
+	if cfg.App.AccVerificationEnabled {
+		missingSMTP := cfg.SMTP.Host == "" || cfg.SMTP.Port == 0 || cfg.SMTP.User == "" || cfg.SMTP.Password == ""
+		if missingSMTP {
+			return nil, fmt.Errorf("SMTP configuration is required when account verification is enabled. Either disable APP_ACC_VERIFICATION_ENABLED or set all required SMTP environment variables")
+		}
 	}
 	return cfg, nil
 }
