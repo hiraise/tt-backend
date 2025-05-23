@@ -2,60 +2,41 @@ package persistent
 
 import (
 	"context"
-	"errors"
 	"task-trail/internal/entity"
 	"task-trail/internal/repo"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type PgTokenRepository struct {
-	pg *pgxpool.Pool
+type PgRefreshTokenRepository struct {
+	PgRepostitory
 }
 
-func NewTokenRepo(db *pgxpool.Pool) *PgTokenRepository {
-	return &PgTokenRepository{pg: db}
+func NewRefreshTokenRepo(db *pgxpool.Pool) *PgRefreshTokenRepository {
+	return &PgRefreshTokenRepository{PgRepostitory{pg: db}}
 }
 
-func (r *PgTokenRepository) getDb(ctx context.Context) pgConn {
-	if tx := extractTx(ctx); tx != nil {
-		return *tx
-	}
-	return r.pg
-}
-
-func (r *PgTokenRepository) Create(ctx context.Context, token *entity.Token) error {
+func (r *PgRefreshTokenRepository) Create(ctx context.Context, token *entity.RefreshToken) error {
 	query := `INSERT INTO refresh_tokens (id, user_id, expired_at) VALUES ($1, $2, $3)`
 	_, err := r.getDb(ctx).Exec(ctx, query, token.ID, token.UserId, token.ExpiredAt)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			if pgErr.Code == "23503" {
-				return repo.Wrap(repo.ErrNotFound, err)
-			}
-			if pgErr.Code == "23505" {
-				return repo.Wrap(repo.ErrConflict, err)
-			}
-		}
-		return repo.Wrap(repo.ErrInternal, err)
+		return r.handleError(err)
 	}
 	return nil
 }
 
-func (r *PgTokenRepository) GetById(
+func (r *PgRefreshTokenRepository) GetById(
 	ctx context.Context,
 	tokenId string,
 	userId int,
-) (*entity.Token, error) {
+) (*entity.RefreshToken, error) {
 	query := `
 		SELECT id, user_id, expired_at, created_at, revoked_at
 		FROM refresh_tokens 
 		WHERE id = $1 and user_id = $2`
-	var token entity.Token
-	err := r.getDb(ctx).
+	var token entity.RefreshToken
+	if err := r.getDb(ctx).
 		QueryRow(ctx, query, tokenId, userId).
 		Scan(
 			&token.ID,
@@ -63,45 +44,41 @@ func (r *PgTokenRepository) GetById(
 			&token.ExpiredAt,
 			&token.CreatedAt,
 			&token.RevokedAt,
-		)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, repo.Wrap(repo.ErrNotFound, err)
-		}
-		return nil, repo.Wrap(repo.ErrInternal, err)
+		); err != nil {
+		return nil, r.handleError(err)
 	}
 	return &token, nil
 }
 
-func (r *PgTokenRepository) Revoke(ctx context.Context, tokenId string) error {
+func (r *PgRefreshTokenRepository) Revoke(ctx context.Context, tokenId string) error {
 	query := `
 		UPDATE refresh_tokens
 		SET revoked_at = $1
-		WHERE id = $2`
+		WHERE id = $2 AND revoked_at IS NULL`
 	tag, err := r.getDb(ctx).Exec(ctx, query, time.Now(), tokenId)
 
 	if err != nil {
-		return repo.Wrap(repo.ErrInternal, err)
+		return r.handleError(err)
 	}
 	if tag.RowsAffected() == 0 {
-		return repo.Wrap(repo.ErrNotFound, err)
+		return repo.ErrNotFound
 	}
 	return nil
 }
 
-func (r *PgTokenRepository) RevokeAllUsersTokens(ctx context.Context, userId int) (int, error) {
+func (r *PgRefreshTokenRepository) RevokeAllUsersTokens(ctx context.Context, userId int) (int, error) {
 	query := `
 		UPDATE refresh_tokens
 		SET revoked_at = $1
 		WHERE user_id = $2 AND revoked_at IS NULL AND expired_at >= $3`
 	tag, err := r.getDb(ctx).Exec(ctx, query, time.Now(), userId, time.Now())
 	if err != nil {
-		return 0, repo.Wrap(repo.ErrInternal, err)
+		return 0, r.handleError(err)
 	}
 	return int(tag.RowsAffected()), nil
 }
 
-func (r *PgTokenRepository) DeleteRevokedAndOldTokens(ctx context.Context, olderThan int) (int, error) {
+func (r *PgRefreshTokenRepository) DeleteRevokedAndOldTokens(ctx context.Context, olderThan int) (int, error) {
 	query := `
 		DELETE 
 		FROM refresh_tokens
@@ -112,7 +89,7 @@ func (r *PgTokenRepository) DeleteRevokedAndOldTokens(ctx context.Context, older
 	`
 	tag, err := r.getDb(ctx).Exec(ctx, query, olderThan)
 	if err != nil {
-		return 0, repo.Wrap(repo.ErrInternal, err)
+		return 0, r.handleError(err)
 	}
 	return int(tag.RowsAffected()), nil
 }

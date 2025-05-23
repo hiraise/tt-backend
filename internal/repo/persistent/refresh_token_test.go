@@ -16,9 +16,9 @@ const testTokenId = "6ff51bb9-e02a-4155-9f76-bfff8c68e3ac"
 const testTokenId1 = "d7e2ec56-b4cb-44eb-879b-8b6b1b2b2fb8"
 const testTokenId2 = "eb660031-8825-43ca-af3a-b7191bd12e15"
 
-var testToken entity.Token = entity.Token{ID: testTokenId, UserId: 1, ExpiredAt: time.Now().Add(time.Minute * 10)}
-var testToken1 entity.Token = entity.Token{ID: testTokenId1, UserId: 1, ExpiredAt: time.Now().Add(time.Minute * 10)}
-var testToken2 entity.Token = entity.Token{ID: testTokenId2, UserId: 1, ExpiredAt: time.Now().Add(time.Minute * 10)}
+var testToken entity.RefreshToken = entity.RefreshToken{ID: testTokenId, UserId: 1, ExpiredAt: time.Now().Add(time.Minute * 10)}
+var testToken1 entity.RefreshToken = entity.RefreshToken{ID: testTokenId1, UserId: 1, ExpiredAt: time.Now().Add(time.Minute * 10)}
+var testToken2 entity.RefreshToken = entity.RefreshToken{ID: testTokenId2, UserId: 1, ExpiredAt: time.Now().Add(time.Minute * 10)}
 
 func verifyTokensCount(t *testing.T, ctx context.Context, connection pgConn, c int) {
 	var count int
@@ -94,6 +94,10 @@ func TestTokenRevoke(t *testing.T) {
 	})
 	t.Run("token not found", func(t *testing.T) {
 		err := tokenRepo.Revoke(t.Context(), testTokenId1)
+		require.ErrorIs(t, err, repo.ErrNotFound)
+	})
+	t.Run("token already used", func(t *testing.T) {
+		err := tokenRepo.Revoke(t.Context(), testTokenId)
 		require.ErrorIs(t, err, repo.ErrNotFound)
 	})
 	t.Run("database internal error", func(t *testing.T) {
