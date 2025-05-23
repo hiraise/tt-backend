@@ -1,6 +1,10 @@
 package config
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
 )
@@ -14,7 +18,7 @@ type PGConfig struct {
 	ConnString       string `env:"PG_CONNECTION_STRING,required"`
 	MaxPoolSize      int    `env:"PG_MAX_POOL_SIZE,required"`
 	MigrationEnabled bool   `env:"PG_MIGRATION_ENABLED" envDefault:"false"`
-	MigrationPath    string `env:"PG_MIGRATION_PATH" envDefault:"file://../../migrations"`
+	MigrationPath    string `env:"PG_MIGRATION_PATH"`
 }
 
 type Docs struct {
@@ -56,10 +60,27 @@ type Config struct {
 }
 
 func New() (*Config, error) {
-	_ = godotenv.Load("../../.env") // If file not found try load anyway
+	path, _ := findProjectRoot()
+	godotenv.Load(path + "/.env") // If file not found try load anyway
 	cfg := &Config{}
 	if err := env.Parse(cfg); err != nil {
 		return nil, err
 	}
+	if cfg.PG.MigrationEnabled {
+		if cfg.PG.MigrationPath == "" {
+			return nil, fmt.Errorf("PG_MIGRATION_PATH required if PG_MIGRATION_ENABLED")
+		}
+	}
 	return cfg, nil
+}
+
+func findProjectRoot() (string, bool) {
+	dir, _ := os.Getwd()
+	for dir != "/" {
+		if _, err := os.Stat(filepath.Join(dir, ".env")); err == nil {
+			return dir, true
+		}
+		dir = filepath.Dir(dir)
+	}
+	return "", false
 }
