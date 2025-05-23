@@ -1,10 +1,11 @@
 //go:build integration
 
-package repo
+package persistent
 
 import (
 	"context"
 	"task-trail/internal/entity"
+	"task-trail/internal/repo"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -29,10 +30,10 @@ func TestUserCreate(t *testing.T) {
 		verifyUsersCount(t, t.Context(), pg.Pool, 1)
 	})
 	t.Run("user alredy exists", func(t *testing.T) {
-		require.ErrorIs(t, userRepo.Create(t.Context(), &basicUser), ErrConflict)
+		require.ErrorIs(t, userRepo.Create(t.Context(), &basicUser), repo.ErrConflict)
 	})
 	t.Run("internal database erorr", func(t *testing.T) {
-		require.ErrorIs(t, userRepo.Create(getBadContext(t), &basicUser), ErrDB)
+		require.ErrorIs(t, userRepo.Create(getBadContext(t), &basicUser), repo.ErrInternal)
 	})
 
 }
@@ -54,7 +55,7 @@ func TestUserEmailIsTaken(t *testing.T) {
 	t.Run("internal db error", func(t *testing.T) {
 		isTaken, err := userRepo.EmailIsTaken(getBadContext(t), testEmail)
 		require.Equal(t, false, isTaken)
-		require.ErrorIs(t, err, ErrDB)
+		require.ErrorIs(t, err, repo.ErrInternal)
 
 	})
 }
@@ -72,11 +73,11 @@ func TestUserGetByEmail(t *testing.T) {
 	t.Run("user not found", func(t *testing.T) {
 		user, err := userRepo.GetByEmail(t.Context(), testEmail1)
 		require.Nil(t, user)
-		require.ErrorIs(t, err, ErrNotFound)
+		require.ErrorIs(t, err, repo.ErrNotFound)
 	})
 	t.Run("internal db error", func(t *testing.T) {
 		user, err := userRepo.GetByEmail(getBadContext(t), testEmail1)
 		require.Nil(t, user)
-		require.ErrorIs(t, err, ErrDB)
+		require.ErrorIs(t, err, repo.ErrInternal)
 	})
 }

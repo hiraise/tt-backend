@@ -1,10 +1,11 @@
 //go:build integration
 
-package repo
+package persistent
 
 import (
 	"context"
 	"task-trail/internal/entity"
+	"task-trail/internal/repo"
 	"testing"
 	"time"
 
@@ -41,15 +42,15 @@ func TestTokenCreate(t *testing.T) {
 		newToken.UserId = 2
 		newToken.ID = testTokenId1
 		err := tokenRepo.Create(t.Context(), &newToken)
-		require.ErrorIs(t, err, ErrNotFound)
+		require.ErrorIs(t, err, repo.ErrNotFound)
 	})
 	t.Run("token already exists", func(t *testing.T) {
 		err := tokenRepo.Create(t.Context(), &testToken)
-		require.ErrorIs(t, err, ErrConflict)
+		require.ErrorIs(t, err, repo.ErrConflict)
 	})
 	t.Run("database internal error", func(t *testing.T) {
 		err := tokenRepo.Create(getBadContext(t), &testToken)
-		require.ErrorIs(t, err, ErrDB)
+		require.ErrorIs(t, err, repo.ErrInternal)
 	})
 
 }
@@ -66,15 +67,15 @@ func TestTokenGetById(t *testing.T) {
 	t.Run("token not found", func(t *testing.T) {
 		token, err := tokenRepo.GetById(t.Context(), testTokenId, 2)
 		require.Nil(t, token)
-		require.ErrorIs(t, err, ErrNotFound)
+		require.ErrorIs(t, err, repo.ErrNotFound)
 		token, err = tokenRepo.GetById(t.Context(), testTokenId1, 1)
 		require.Nil(t, token)
-		require.ErrorIs(t, err, ErrNotFound)
+		require.ErrorIs(t, err, repo.ErrNotFound)
 	})
 	t.Run("database internal error", func(t *testing.T) {
 		token, err := tokenRepo.GetById(getBadContext(t), testTokenId, 1)
 		require.Nil(t, token)
-		require.ErrorIs(t, err, ErrDB)
+		require.ErrorIs(t, err, repo.ErrInternal)
 	})
 }
 
@@ -93,11 +94,11 @@ func TestTokenRevoke(t *testing.T) {
 	})
 	t.Run("token not found", func(t *testing.T) {
 		err := tokenRepo.Revoke(t.Context(), testTokenId1)
-		require.ErrorIs(t, err, ErrNotFound)
+		require.ErrorIs(t, err, repo.ErrNotFound)
 	})
 	t.Run("database internal error", func(t *testing.T) {
 		err := tokenRepo.Revoke(getBadContext(t), testTokenId)
-		require.ErrorIs(t, err, ErrDB)
+		require.ErrorIs(t, err, repo.ErrInternal)
 	})
 }
 
@@ -120,7 +121,7 @@ func TestTokenRevokeAllUsersTokens(t *testing.T) {
 	t.Run("database internal error", func(t *testing.T) {
 		num, err := tokenRepo.RevokeAllUsersTokens(getBadContext(t), 1)
 		require.Equal(t, 0, num)
-		require.ErrorIs(t, err, ErrDB)
+		require.ErrorIs(t, err, repo.ErrInternal)
 	})
 }
 
@@ -155,6 +156,6 @@ func TestTokenDeleteRevokedAndOldTokens(t *testing.T) {
 	t.Run("database internal error", func(t *testing.T) {
 		num, err := tokenRepo.DeleteRevokedAndOldTokens(getBadContext(t), 1)
 		require.Equal(t, 0, num)
-		require.ErrorIs(t, err, ErrDB)
+		require.ErrorIs(t, err, repo.ErrInternal)
 	})
 }

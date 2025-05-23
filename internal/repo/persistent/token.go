@@ -1,9 +1,10 @@
-package repo
+package persistent
 
 import (
 	"context"
 	"errors"
 	"task-trail/internal/entity"
+	"task-trail/internal/repo"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -33,13 +34,13 @@ func (r *PgTokenRepository) Create(ctx context.Context, token *entity.Token) err
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23503" {
-				return Wrap(ErrNotFound, err)
+				return repo.Wrap(repo.ErrNotFound, err)
 			}
 			if pgErr.Code == "23505" {
-				return Wrap(ErrConflict, err)
+				return repo.Wrap(repo.ErrConflict, err)
 			}
 		}
-		return Wrap(ErrDB, err)
+		return repo.Wrap(repo.ErrInternal, err)
 	}
 	return nil
 }
@@ -65,9 +66,9 @@ func (r *PgTokenRepository) GetById(
 		)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, Wrap(ErrNotFound, err)
+			return nil, repo.Wrap(repo.ErrNotFound, err)
 		}
-		return nil, Wrap(ErrDB, err)
+		return nil, repo.Wrap(repo.ErrInternal, err)
 	}
 	return &token, nil
 }
@@ -80,10 +81,10 @@ func (r *PgTokenRepository) Revoke(ctx context.Context, tokenId string) error {
 	tag, err := r.getDb(ctx).Exec(ctx, query, time.Now(), tokenId)
 
 	if err != nil {
-		return Wrap(ErrDB, err)
+		return repo.Wrap(repo.ErrInternal, err)
 	}
 	if tag.RowsAffected() == 0 {
-		return Wrap(ErrNotFound, err)
+		return repo.Wrap(repo.ErrNotFound, err)
 	}
 	return nil
 }
@@ -95,7 +96,7 @@ func (r *PgTokenRepository) RevokeAllUsersTokens(ctx context.Context, userId int
 		WHERE user_id = $2 AND revoked_at IS NULL AND expired_at >= $3`
 	tag, err := r.getDb(ctx).Exec(ctx, query, time.Now(), userId, time.Now())
 	if err != nil {
-		return 0, Wrap(ErrDB, err)
+		return 0, repo.Wrap(repo.ErrInternal, err)
 	}
 	return int(tag.RowsAffected()), nil
 }
@@ -111,7 +112,7 @@ func (r *PgTokenRepository) DeleteRevokedAndOldTokens(ctx context.Context, older
 	`
 	tag, err := r.getDb(ctx).Exec(ctx, query, olderThan)
 	if err != nil {
-		return 0, Wrap(ErrDB, err)
+		return 0, repo.Wrap(repo.ErrInternal, err)
 	}
 	return int(tag.RowsAffected()), nil
 }
