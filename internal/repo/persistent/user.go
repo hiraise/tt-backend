@@ -3,7 +3,6 @@ package persistent
 import (
 	"context"
 	"task-trail/internal/entity"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -16,14 +15,18 @@ func NewUserRepo(db *pgxpool.Pool) *PgUserRepository {
 	return &PgUserRepository{PgRepostitory{pg: db}}
 }
 
-func (r *PgUserRepository) Create(ctx context.Context, user *entity.User) error {
-	// TODO: remove verified_at after apply user verification
-	query := `INSERT INTO users (email, password_hash, verified_at) VALUES ($1, $2, $3)`
-	_, err := r.getDb(ctx).Exec(ctx, query, user.Email, user.PasswordHash, time.Now())
+func (r *PgUserRepository) Create(ctx context.Context, user *entity.User) (int, error) {
+	query := `
+		INSERT INTO users 
+		(email, password_hash) 
+		VALUES ($1, $2)
+		RETURNING id;`
+	var id int
+	err := r.getDb(ctx).QueryRow(ctx, query, user.Email, user.PasswordHash).Scan(&id)
 	if err != nil {
-		return r.handleError(err)
+		return 0, r.handleError(err)
 	}
-	return nil
+	return id, err
 }
 
 func (r *PgUserRepository) EmailIsTaken(ctx context.Context, email string) (bool, error) {

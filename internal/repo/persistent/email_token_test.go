@@ -14,8 +14,9 @@ import (
 
 func beforeEachEmailTest(t *testing.T) {
 	cleanDB(t)
-	err := userRepo.Create(t.Context(), &basicUser)
+	id, err := userRepo.Create(t.Context(), &basicUser)
 	require.NoError(t, err)
+	require.Equal(t, 1, id)
 }
 
 func createEmailConfirmToken(ctx context.Context, userId int, tokenId string) error {

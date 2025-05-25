@@ -25,15 +25,18 @@ var basicUser entity.User = entity.User{Email: testEmail, PasswordHash: "123"}
 func TestUserCreate(t *testing.T) {
 	cleanDB(t)
 	t.Run("successfully create user", func(t *testing.T) {
-		err := userRepo.Create(t.Context(), &basicUser)
+		id, err := userRepo.Create(t.Context(), &basicUser)
 		require.NoError(t, err)
+		require.Equal(t, 1, id)
 		verifyUsersCount(t, t.Context(), pg.Pool, 1)
 	})
 	t.Run("user alredy exists", func(t *testing.T) {
-		require.ErrorIs(t, userRepo.Create(t.Context(), &basicUser), repo.ErrConflict)
+		_, err := userRepo.Create(t.Context(), &basicUser)
+		require.ErrorIs(t, err, repo.ErrConflict)
 	})
 	t.Run("internal database erorr", func(t *testing.T) {
-		require.ErrorIs(t, userRepo.Create(getBadContext(t), &basicUser), repo.ErrInternal)
+		_, err := userRepo.Create(getBadContext(t), &basicUser)
+		require.ErrorIs(t, err, repo.ErrInternal)
 	})
 
 }
@@ -46,8 +49,9 @@ func TestUserEmailIsTaken(t *testing.T) {
 		require.Equal(t, false, isTaken)
 	})
 	t.Run("email is taken", func(t *testing.T) {
-		err := userRepo.Create(t.Context(), &basicUser)
+		id, err := userRepo.Create(t.Context(), &basicUser)
 		require.NoError(t, err)
+		require.Equal(t, 1, id)
 		isTaken, err := userRepo.EmailIsTaken(t.Context(), testEmail)
 		require.NoError(t, err)
 		require.Equal(t, true, isTaken)
@@ -63,11 +67,12 @@ func TestUserEmailIsTaken(t *testing.T) {
 func TestUserGetByEmail(t *testing.T) {
 	cleanDB(t)
 	t.Run("successfully get user", func(t *testing.T) {
-		err := userRepo.Create(t.Context(), &basicUser)
+		id, err := userRepo.Create(t.Context(), &basicUser)
 		require.NoError(t, err)
+		require.Equal(t, 1, id)
 		user, err := userRepo.GetByEmail(t.Context(), testEmail)
 		require.NoError(t, err)
-		require.Equal(t, user.ID, 1)
+		require.Equal(t, 1, user.ID)
 		require.Equal(t, user.Email, testEmail)
 	})
 	t.Run("user not found", func(t *testing.T) {

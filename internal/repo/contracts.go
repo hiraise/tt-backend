@@ -20,7 +20,7 @@ type TxManager interface {
 }
 
 type UserRepository interface {
-	Create(ctx context.Context, user *entity.User) error
+	Create(ctx context.Context, user *entity.User) (int, error)
 	EmailIsTaken(ctx context.Context, email string) (bool, error)
 	GetByEmail(ctx context.Context, email string) (*entity.User, error)
 }
@@ -29,7 +29,7 @@ type VerificationRepository interface {
 	Verify(ctx context.Context, code int) error
 }
 
-type TokenRepository interface {
+type RefreshTokenRepository interface {
 	Create(ctx context.Context, token *entity.RefreshToken) error
 	GetById(ctx context.Context, tokenId string, userId int) (*entity.RefreshToken, error)
 	Revoke(ctx context.Context, tokenId string) error

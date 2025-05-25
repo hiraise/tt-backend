@@ -26,8 +26,9 @@ func verifyTokensCount(t *testing.T, ctx context.Context, connection pgConn, c i
 	require.Equal(t, c, count)
 }
 func initToken(t *testing.T) {
-	err := userRepo.Create(t.Context(), &basicUser)
+	id, err := userRepo.Create(t.Context(), &basicUser)
 	require.NoError(t, err)
+	require.Equal(t, 1, id)
 	err = tokenRepo.Create(t.Context(), &testToken)
 	require.NoError(t, err)
 }

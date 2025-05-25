@@ -14,12 +14,14 @@ func TestTxSuccess(t *testing.T) {
 	cleanDB(t)
 	txManager.DoWithTx(t.Context(), func(ctx context.Context) error {
 		// add new user in tx
-		err := userRepo.Create(ctx, &entity.User{Email: "test@mail.ru", PasswordHash: "123"})
+		id, err := userRepo.Create(ctx, &entity.User{Email: "test@mail.ru", PasswordHash: "123"})
 		require.NoError(t, err)
+		require.Equal(t, 1, id)
 		// check if new user was added
 		verifyUsersCount(t, t.Context(), (*extractTx(ctx)), 1)
-		err = userRepo.Create(ctx, &entity.User{Email: "test1@mail.ru", PasswordHash: "123"})
+		id, err = userRepo.Create(ctx, &entity.User{Email: "test1@mail.ru", PasswordHash: "123"})
 		require.NoError(t, err)
+		require.Equal(t, 2, id)
 		verifyUsersCount(t, t.Context(), (*extractTx(ctx)), 2)
 		return nil
 	},
@@ -32,12 +34,13 @@ func TestTxSuccessRollback(t *testing.T) {
 	cleanDB(t)
 	txManager.DoWithTx(t.Context(), func(ctx context.Context) error {
 		// add new user in tx
-		err := userRepo.Create(ctx, &entity.User{Email: "test@mail.ru", PasswordHash: "123"})
+		id, err := userRepo.Create(ctx, &entity.User{Email: "test@mail.ru", PasswordHash: "123"})
 		require.NoError(t, err)
+		require.Equal(t, 1, id)
 		// check if new user was added
 		verifyUsersCount(t, t.Context(), (*extractTx(ctx)), 1)
 		// return error from tx function
-		err = userRepo.Create(ctx, &entity.User{Email: "test@mail.ru", PasswordHash: "123"})
+		id, err = userRepo.Create(ctx, &entity.User{Email: "test@mail.ru", PasswordHash: "123"})
 		return err
 	},
 	)
