@@ -20,30 +20,39 @@ const testPwd = "password"
 const testEmail = "test@test.test"
 
 type testDeps struct {
-	userRepo    mocks.MockUserRepository
-	tokenRepo   mocks.MockTokenRepository
-	txManager   mocks.MockTxManager
-	passwordSvc mocks.MockPasswordService
-	tokenSvc    mocks.MockTokenService
-	errHandler  customerrors.ErrorHandler
+	userRepo         mocks.MockUserRepository
+	rtRepo           mocks.MockRefreshTokenRepository
+	etRepo           mocks.MockEmailTokenRepository
+	txManager        mocks.MockTxManager
+	notificationRepo mocks.MockNotificationRepository
+	passwordSvc      mocks.MockPasswordService
+	tokenSvc         mocks.MockTokenService
+	errHandler       customerrors.ErrorHandler
+	uuid             mocks.MockGenerator
 }
 
 func mockUseCase(ctrl *gomock.Controller) (*UseCase, *testDeps) {
-	mockTokenRepo := mocks.NewMockTokenRepository(ctrl)
-	mockUserRepo := mocks.NewMockUserRepository(ctrl)
-	mocktxManager := mocks.NewMockTxManager(ctrl)
-	mockTokenSvc := mocks.NewMockTokenService(ctrl)
-	mockPasswordSvc := mocks.NewMockPasswordService(ctrl)
+	rtRepo := mocks.NewMockRefreshTokenRepository(ctrl)
+	etRepo := mocks.NewMockEmailTokenRepository(ctrl)
+	userRepo := mocks.NewMockUserRepository(ctrl)
+	txManager := mocks.NewMockTxManager(ctrl)
+	notificationRepo := mocks.NewMockNotificationRepository(ctrl)
+	tokenSvc := mocks.NewMockTokenService(ctrl)
+	passwordSvc := mocks.NewMockPasswordService(ctrl)
 	errHandler := customerrors.NewErrHander()
+	uuid := mocks.NewMockGenerator(ctrl)
 
-	uc := New(errHandler, mocktxManager, mockUserRepo, mockTokenRepo, mockPasswordSvc, mockTokenSvc)
+	uc := New(errHandler, txManager, userRepo, rtRepo, etRepo, notificationRepo, passwordSvc, tokenSvc, uuid)
 	deps := &testDeps{
-		tokenRepo:   *mockTokenRepo,
-		userRepo:    *mockUserRepo,
-		txManager:   *mocktxManager,
-		tokenSvc:    *mockTokenSvc,
-		passwordSvc: *mockPasswordSvc,
-		errHandler:  errHandler,
+		rtRepo:           *rtRepo,
+		etRepo:           *etRepo,
+		userRepo:         *userRepo,
+		txManager:        *txManager,
+		notificationRepo: *notificationRepo,
+		tokenSvc:         *tokenSvc,
+		passwordSvc:      *passwordSvc,
+		errHandler:       errHandler,
+		uuid:             *uuid,
 	}
 	return uc, deps
 }
@@ -138,7 +147,7 @@ func TestUseCase_Register(t *testing.T) {
 				mockTx(ctx, deps.txManager)
 				// password hashing failed
 				mockHashPwd(deps.passwordSvc, false)
-				deps.userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(repo.ErrDB)
+				deps.userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
@@ -231,7 +240,7 @@ func TestUseCase_Login(t *testing.T) {
 				deps.passwordSvc.EXPECT().ComparePassword(gomock.Any(), gomock.Any()).Return(nil)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(at, nil)
 				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(rt, nil)
-				deps.tokenRepo.EXPECT().Create(ctx, gomock.Any()).Return(nil)
+				deps.rtRepo.EXPECT().Create(ctx, gomock.Any()).Return(nil)
 				return uc
 			},
 			wantErr: false,
@@ -256,7 +265,7 @@ func TestUseCase_Login(t *testing.T) {
 			args: a,
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
-				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(nil, repo.ErrDB)
+				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(nil, repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
@@ -327,7 +336,7 @@ func TestUseCase_Login(t *testing.T) {
 				deps.passwordSvc.EXPECT().ComparePassword(gomock.Any(), gomock.Any()).Return(nil)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(at, nil)
 				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(rt, nil)
-				deps.tokenRepo.EXPECT().Create(ctx, gomock.Any()).Return(repo.ErrConflict)
+				deps.rtRepo.EXPECT().Create(ctx, gomock.Any()).Return(repo.ErrConflict)
 				return uc
 			},
 			wantErr:     true,
@@ -343,7 +352,7 @@ func TestUseCase_Login(t *testing.T) {
 				deps.passwordSvc.EXPECT().ComparePassword(gomock.Any(), gomock.Any()).Return(nil)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(at, nil)
 				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(rt, nil)
-				deps.tokenRepo.EXPECT().Create(ctx, gomock.Any()).Return(repo.ErrNotFound)
+				deps.rtRepo.EXPECT().Create(ctx, gomock.Any()).Return(repo.ErrNotFound)
 				return uc
 			},
 			wantErr:     true,
@@ -359,7 +368,7 @@ func TestUseCase_Login(t *testing.T) {
 				deps.passwordSvc.EXPECT().ComparePassword(gomock.Any(), gomock.Any()).Return(nil)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(at, nil)
 				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(rt, nil)
-				deps.tokenRepo.EXPECT().Create(ctx, gomock.Any()).Return(repo.ErrDB)
+				deps.rtRepo.EXPECT().Create(ctx, gomock.Any()).Return(repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
@@ -412,7 +421,7 @@ func TestUseCase_Refresh(t *testing.T) {
 		ctx   context.Context
 		oldRT string
 	}
-	oldRT := entity.Token{
+	oldRT := entity.RefreshToken{
 		ID:        "123",
 		UserId:    1,
 		ExpiredAt: time.Now().Add(100 * time.Minute),
@@ -449,12 +458,12 @@ func TestUseCase_Refresh(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
 				mockTx(ctx, deps.txManager)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(newAT, nil)
 				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(newRT, nil)
-				deps.tokenRepo.EXPECT().Create(ctx, gomock.Any()).Return(nil)
-				deps.tokenRepo.EXPECT().Revoke(ctx, gomock.Any()).Return(nil)
+				deps.rtRepo.EXPECT().Create(ctx, gomock.Any()).Return(nil)
+				deps.rtRepo.EXPECT().Revoke(ctx, gomock.Any()).Return(nil)
 				return uc
 			},
 			wantErr: false,
@@ -479,7 +488,7 @@ func TestUseCase_Refresh(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(nil, repo.ErrNotFound)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(nil, repo.ErrNotFound)
 				return uc
 			},
 			wantErr:     true,
@@ -492,7 +501,7 @@ func TestUseCase_Refresh(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(nil, repo.ErrDB)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(nil, repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
@@ -506,10 +515,10 @@ func TestUseCase_Refresh(t *testing.T) {
 				uc, deps := mockUseCase(ctrl)
 
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().
+				deps.rtRepo.EXPECT().
 					GetById(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.Token{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: time.Now()}, nil)
+					Return(&entity.RefreshToken{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: time.Now()}, nil)
 				return uc
 			},
 			wantErr:     true,
@@ -523,11 +532,11 @@ func TestUseCase_Refresh(t *testing.T) {
 				uc, deps := mockUseCase(ctrl)
 
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().
+				deps.rtRepo.EXPECT().
 					GetById(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.Token{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
-				deps.tokenRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(1, nil)
+					Return(&entity.RefreshToken{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
+				deps.rtRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(1, nil)
 				return uc
 			},
 			wantErr:     true,
@@ -541,11 +550,11 @@ func TestUseCase_Refresh(t *testing.T) {
 				uc, deps := mockUseCase(ctrl)
 
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().
+				deps.rtRepo.EXPECT().
 					GetById(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.Token{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
-				deps.tokenRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(0, repo.ErrDB)
+					Return(&entity.RefreshToken{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
+				deps.rtRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(0, repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
@@ -558,7 +567,7 @@ func TestUseCase_Refresh(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
 				mockTx(ctx, deps.txManager)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(nil, fmt.Errorf("at generation failed"))
 				return uc
@@ -573,7 +582,7 @@ func TestUseCase_Refresh(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
 				mockTx(ctx, deps.txManager)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(newAT, nil)
 				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(nil, fmt.Errorf("rt generation failed"))
@@ -589,11 +598,11 @@ func TestUseCase_Refresh(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
 				mockTx(ctx, deps.txManager)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(newAT, nil)
 				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(newRT, nil)
-				deps.tokenRepo.EXPECT().Create(ctx, gomock.Any()).Return(repo.ErrConflict)
+				deps.rtRepo.EXPECT().Create(ctx, gomock.Any()).Return(repo.ErrConflict)
 				return uc
 			},
 			wantErr:     true,
@@ -606,11 +615,11 @@ func TestUseCase_Refresh(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
 				mockTx(ctx, deps.txManager)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(newAT, nil)
 				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(newRT, nil)
-				deps.tokenRepo.EXPECT().Create(ctx, gomock.Any()).Return(repo.ErrDB)
+				deps.rtRepo.EXPECT().Create(ctx, gomock.Any()).Return(repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
@@ -623,12 +632,12 @@ func TestUseCase_Refresh(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
 				mockTx(ctx, deps.txManager)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(newAT, nil)
 				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(newRT, nil)
-				deps.tokenRepo.EXPECT().Create(ctx, gomock.Any()).Return(nil)
-				deps.tokenRepo.EXPECT().Revoke(ctx, gomock.Any()).Return(repo.ErrNotFound)
+				deps.rtRepo.EXPECT().Create(ctx, gomock.Any()).Return(nil)
+				deps.rtRepo.EXPECT().Revoke(ctx, gomock.Any()).Return(repo.ErrNotFound)
 				return uc
 			},
 			wantErr:     true,
@@ -641,12 +650,12 @@ func TestUseCase_Refresh(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
 				mockTx(ctx, deps.txManager)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(newAT, nil)
 				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(newRT, nil)
-				deps.tokenRepo.EXPECT().Create(ctx, gomock.Any()).Return(nil)
-				deps.tokenRepo.EXPECT().Revoke(ctx, gomock.Any()).Return(repo.ErrDB)
+				deps.rtRepo.EXPECT().Create(ctx, gomock.Any()).Return(nil)
+				deps.rtRepo.EXPECT().Revoke(ctx, gomock.Any()).Return(repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
@@ -696,7 +705,7 @@ func TestUseCase_Logout(t *testing.T) {
 		ctx context.Context
 		rt  string
 	}
-	oldRT := entity.Token{
+	oldRT := entity.RefreshToken{
 		ID:        "123",
 		UserId:    1,
 		ExpiredAt: time.Now().Add(100 * time.Minute),
@@ -722,8 +731,8 @@ func TestUseCase_Logout(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
-				deps.tokenRepo.EXPECT().Revoke(ctx, gomock.Any()).Return(nil)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
+				deps.rtRepo.EXPECT().Revoke(ctx, gomock.Any()).Return(nil)
 				return uc
 			},
 			wantErr: false,
@@ -746,7 +755,7 @@ func TestUseCase_Logout(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(nil, repo.ErrNotFound)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(nil, repo.ErrNotFound)
 				return uc
 			},
 			wantErr:     true,
@@ -759,7 +768,7 @@ func TestUseCase_Logout(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(nil, repo.ErrDB)
+				deps.rtRepo.EXPECT().GetById(ctx, gomock.Any(), gomock.Any()).Return(nil, repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
@@ -773,10 +782,10 @@ func TestUseCase_Logout(t *testing.T) {
 				uc, deps := mockUseCase(ctrl)
 
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().
+				deps.rtRepo.EXPECT().
 					GetById(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.Token{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: time.Now()}, nil)
+					Return(&entity.RefreshToken{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: time.Now()}, nil)
 				return uc
 			},
 			wantErr:     true,
@@ -790,11 +799,11 @@ func TestUseCase_Logout(t *testing.T) {
 				uc, deps := mockUseCase(ctrl)
 
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().
+				deps.rtRepo.EXPECT().
 					GetById(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.Token{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
-				deps.tokenRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(1, nil)
+					Return(&entity.RefreshToken{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
+				deps.rtRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(1, nil)
 				return uc
 			},
 			wantErr:     true,
@@ -808,11 +817,11 @@ func TestUseCase_Logout(t *testing.T) {
 				uc, deps := mockUseCase(ctrl)
 
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserId, oldRT.ID, nil)
-				deps.tokenRepo.EXPECT().
+				deps.rtRepo.EXPECT().
 					GetById(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.Token{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
-				deps.tokenRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(0, repo.ErrDB)
+					Return(&entity.RefreshToken{ID: oldRT.ID, UserId: oldRT.UserId, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
+				deps.rtRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(0, repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
