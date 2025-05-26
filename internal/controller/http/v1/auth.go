@@ -160,5 +160,5 @@ func NewAuthRouter(
 	g.POST("/logout", authMW, r.logout)
 	g.POST("/register", r.register)
 	g.POST("/refresh", r.refresh)
-	g.GET("/check", r.check)
+	g.GET("/check", authMW, r.check)
 }
