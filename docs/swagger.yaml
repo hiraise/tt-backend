@@ -39,6 +39,24 @@ info:
   title: Task Trail API
   version: "1.0"
 paths:
+  /v1/auth/check:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/customerrors.Err'
+      security:
+      - BearerAuth: []
+      summary: check user authentication
+      tags:
+      - /v1/auth
   /v1/auth/login:
     post:
       consumes:
