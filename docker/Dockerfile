@@ -8,8 +8,6 @@ WORKDIR /build
 
 COPY . .
 
-
-RUN make swag
 RUN go build -C ./cmd/app -o /build/app
 
 FROM alpine
