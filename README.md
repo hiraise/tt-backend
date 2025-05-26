@@ -27,10 +27,9 @@ _Coming soon_
 | **APP SETTINGS**                     |                       |             |
 | `APP_DEBUG`                          | `true`                | Enable debug mode |
 | `APP_ROOT_PATH`                      | `8080`                | Port on which the app will run. Can be empty; defaults to 8080 |
-| `APP_ACC_VERIFICATION_ENABLED`       | `true`                | When enabled, service sends confirmation email after user registration. Requires SMTP settings. Can be empty; defaults to true |
 | **DATABASE SETTINGS**                |                       |             |
 | `PG_MIGRATION_ENABLED`               | `true`                | When enabled, automatically applies all migrations to DB. Can be empty; defaults to false |
-| `PG_MIGRATION_PATH`                  | `"file://migrations"` | Migration folder path. Can be empty; defaults to `"file://../../migrations"` (for local run) |
+| `PG_MIGRATION_PATH`                  | `"file://migrations"` | Migration folder path. Can be empty; required id PG_MIGRATION_ENABLED is true |
 | `PG_CONNECTION_STRING`               | `postgresql://login:password@address:5432/db_name` | PostgreSQL connection string |
 | `PG_MAX_POOL_SIZE`                   | `10`                  | Maximum number of simultaneous PostgreSQL connections |
 | **AUTHENTICATION SETTINGS**          |                       |             |
@@ -40,8 +39,8 @@ _Coming soon_
 | `AUTH_REFRESH_TOKEN_LIFETIME_MIN`    | `1440`                | Refresh token lifetime in minutes |
 | `AUTH_TOKEN_ISSUER`                  | `example.com`         | [Issuer claim](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1) |
 | **SMTP SETTINGS**                    |                       |             |
-| `SMTP_HOST`                          | `mail.example.com`    | SMTP server host. Required if `APP_ACC_VERIFICATION_ENABLED` is true |
-| `SMTP_PORT`                          | `587`                 | SMTP server port. Required if `APP_ACC_VERIFICATION_ENABLED` is true |
-| `SMTP_USER`                          | `noreply@example.com` | SMTP server authentication email. Required if `APP_ACC_VERIFICATION_ENABLED` is true |
-| `SMTP_PASSWORD`                      | `password123`         | SMTP server authentication password. Required if `APP_ACC_VERIFICATION_ENABLED` is true |
+| `SMTP_HOST`                          | `mail.example.com`    | SMTP server host |
+| `SMTP_PORT`                          | `587`                 | SMTP server port |
+| `SMTP_USER`                          | `noreply@example.com` | SMTP server authentication email |
+| `SMTP_PASSWORD`                      | `password123`         | SMTP server authentication password |
 | `SMTP_SENDER`                        | `TaskTrail <noreply@example.com>` | Sender email and name. Can be empty; defaults to `SMTP_USER` |

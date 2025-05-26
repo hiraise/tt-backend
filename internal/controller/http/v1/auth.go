@@ -134,6 +134,18 @@ func (r *authRoutes) logout(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
+// @Summary 	check user authentication
+// @Security BearerAuth
+// @Tags 		/v1/auth
+// @Accept 		json
+// @Produce 	json
+// @Success 	200
+// @Failure		401 {object} customerrors.Err "authentication required"
+// @Router 		/v1/auth/check [get]
+func (r *authRoutes) check(c *gin.Context) {
+	c.JSON(http.StatusOK, nil)
+}
+
 func NewAuthRouter(
 	contextmanager contextmanager.Gin,
 	router *gin.RouterGroup,
@@ -148,4 +160,5 @@ func NewAuthRouter(
 	g.POST("/logout", authMW, r.logout)
 	g.POST("/register", r.register)
 	g.POST("/refresh", r.refresh)
+	g.GET("/check", r.check)
 }

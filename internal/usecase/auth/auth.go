@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"task-trail/internal/customerrors"
+	"task-trail/internal/entity"
 	"task-trail/internal/pkg/password"
 	"task-trail/internal/pkg/token"
 	"task-trail/internal/pkg/uuid"
@@ -99,4 +100,23 @@ func (u *UseCase) generateAuthTokens(userId int) (*token.Token, *token.Token, er
 		return nil, nil, u.errHandler.InternalTrouble(err, "generation refresh token failed", "userId", userId)
 	}
 	return at, rt, nil
+}
+
+func (u *UseCase) createEmailToken(ctx context.Context, userId int, email string, purpose entity.EmailTokenPurpose) (string, error) {
+	et := entity.EmailToken{
+		ID:        u.uuid.Generate(),
+		ExpiredAt: time.Now().Add(time.Minute * 10),
+		UserId:    userId,
+		Purpose:   purpose,
+	}
+	if err := u.etRepo.Create(ctx, et); err != nil {
+		if errors.Is(err, repo.ErrConflict) {
+			return "", u.errHandler.InternalTrouble(err, "uuid generation conflict, email token already exists")
+		}
+		if errors.Is(err, repo.ErrNotFound) {
+			return "", u.errHandler.InternalTrouble(err, "user not found", "userId", userId)
+		}
+		return "", u.errHandler.InternalTrouble(err, "email token creation failed", "userId", userId)
+	}
+	return et.ID, nil
 }

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"task-trail/internal/entity"
 	"task-trail/internal/repo"
-	"time"
 )
 
 func (u *UseCase) Register(ctx context.Context, email string, password string) error {
@@ -15,7 +14,7 @@ func (u *UseCase) Register(ctx context.Context, email string, password string) e
 		if err != nil {
 			return u.errHandler.InternalTrouble(err, "password hashing failed")
 		}
-
+		// create user
 		user := &entity.User{Email: email, PasswordHash: string(hash)}
 		id, err := u.userRepo.Create(ctx, user)
 		if err != nil {
@@ -24,15 +23,15 @@ func (u *UseCase) Register(ctx context.Context, email string, password string) e
 			}
 			return u.errHandler.InternalTrouble(err, "failed to create new user", "email", email)
 		}
-
-		et := entity.EmailToken{
-			ID:        u.uuid.Generate(),
-			ExpiredAt: time.Now().Add(time.Minute * 10),
-			UserId:    id,
-			Purpose:   entity.PurposeConfirmation,
+		// create email token
+		tokenId, err := u.createEmailToken(ctx, id, email, entity.PurposeConfirmation)
+		if err != nil {
+			return err
 		}
-		u.etRepo.Create(ctx, et)
-		u.notificationRepo.SendConfirmationEmail(ctx, user.Email, et.ID)
+		// send confirmation
+		if err := u.notificationRepo.SendConfirmationEmail(ctx, email, tokenId); err != nil {
+			return u.errHandler.InternalTrouble(err, "confirmation email sending failed", "userId", id)
+		}
 		return nil
 	}
 
