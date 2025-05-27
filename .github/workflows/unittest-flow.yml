@@ -62,6 +62,7 @@ jobs:
           --health-retries 5
     timeout-minutes: 7
     steps:
+      - run: ls
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
