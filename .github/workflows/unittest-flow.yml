@@ -24,7 +24,7 @@ jobs:
       APP_DEBUG: True
       APP_ROOT_PATH: 
       PG_MIGRATION_ENABLED: True
-      PG_MIGRATION_PATH: file:///task-trail/migrations
+      PG_MIGRATION_PATH: file://${GITHUB_WORKSPACE}/task-trail/migrations
       PG_CONNECTION_STRING: postgresql://root:root@postgres:5432/test_db
       PG_MAX_POOL_SIZE: 10
       AUTH_ACCESS_TOKEN_SECRET: kek
@@ -63,7 +63,7 @@ jobs:
     timeout-minutes: 7
     steps:
       - name: kek
-        run: pwd && ls
+        run: echo %PG_MIGRATION_PATH
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
