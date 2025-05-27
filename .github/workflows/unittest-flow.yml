@@ -62,10 +62,8 @@ jobs:
           --health-retries 5
     timeout-minutes: 7
     steps:
-      - run: pwd
-      - run: ls -la
-      - run: cd task-trail && ls -la
-      - run: cd task-trail/migrations && ls -la
+      - name: Use Workspace
+        run: ls ${{GITHUB_WORKSPACE}}
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
