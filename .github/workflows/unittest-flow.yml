@@ -61,11 +61,11 @@ jobs:
           --health-retries 5
     timeout-minutes: 7
     steps:
+      - uses: actions/checkout@v4
       - name: Проверка пути к миграциям
         run: |
           echo "MIGRATIONS_PATH=$PG_MIGRATION_PATH"
-          ls -l "$PG_MIGRATION_PATH"
-      - uses: actions/checkout@v4
+          ls -l "${{ github.workspace }}/migrations"
       - uses: actions/setup-go@v5
         with:
           go-version: '1.24.x'
