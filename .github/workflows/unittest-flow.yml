@@ -62,6 +62,8 @@ jobs:
           --health-retries 5
     timeout-minutes: 7
     steps:
+      - run: pwd
+      - run: cd task-trail
       - run: cd migrations
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
