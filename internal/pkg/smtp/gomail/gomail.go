@@ -14,7 +14,7 @@ type GomailSender struct {
 }
 
 func New(logger logger.Logger, host string, port int, login string, password string, sender string) *GomailSender {
-	var opts []mail.Option = []mail.Option{
+	opts := []mail.Option{
 		mail.WithSMTPAuth(mail.SMTPAuthPlain),
 		mail.WithUsername(login),
 		mail.WithPassword(password),

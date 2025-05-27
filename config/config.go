@@ -61,7 +61,9 @@ type Config struct {
 
 func New() (*Config, error) {
 	path, _ := findProjectRoot()
-	godotenv.Load(path + "/.env") // If file not found try load anyway
+	if err := godotenv.Load(path + "/.env"); err != nil {
+		fmt.Println(".env file not found. Variables will be taken from environment")
+	}
 	cfg := &Config{}
 	if err := env.Parse(cfg); err != nil {
 		return nil, err
