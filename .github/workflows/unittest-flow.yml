@@ -43,7 +43,9 @@ jobs:
       FRONTEND_RESET_PASSWORD_URL: http://localhost:3000/reset
 
     runs-on: ubuntu-latest
-    container: golang:1.24
+    defaults:
+      run:
+        working-directory: ./
     services:
       # Label used to access the service container
       postgres:
@@ -63,7 +65,7 @@ jobs:
     timeout-minutes: 7
     steps:
       - name: Use Workspace
-        run: ls ${{GITHUB_WORKSPACE}}
+        run: ls ${{ github.workspace }}
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
