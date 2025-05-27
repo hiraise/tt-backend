@@ -63,7 +63,7 @@ jobs:
     steps:
       - name: Проверка пути к миграциям
         run: |
-          echo "MIGRATIONS_PATH=$MIGRATIONS_PATH"
+          echo "MIGRATIONS_PATH=$PG_MIGRATION_PATH"
           ls -l "$MIGRATIONS_PATH"
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
