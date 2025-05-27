@@ -158,6 +158,32 @@ paths:
       summary: register new user
       tags:
       - /v1/auth
+  /v1/auth/verify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: token is invalid
+          schema:
+            $ref: '#/definitions/customerrors.Err'
+        "404":
+          description: token or user not found
+          schema:
+            $ref: '#/definitions/customerrors.Err'
+      summary: verify user account
+      tags:
+      - /v1/auth
   /v1/users/{id}:
     get:
       consumes:

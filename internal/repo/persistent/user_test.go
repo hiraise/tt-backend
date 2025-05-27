@@ -7,6 +7,7 @@ import (
 	"task-trail/internal/entity"
 	"task-trail/internal/repo"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -66,7 +67,7 @@ func TestUserEmailIsTaken(t *testing.T) {
 
 func TestUserGetByEmail(t *testing.T) {
 	cleanDB(t)
-	t.Run("successfully get user", func(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
 		id, err := userRepo.Create(t.Context(), &basicUser)
 		require.NoError(t, err)
 		require.Equal(t, 1, id)
@@ -85,4 +86,132 @@ func TestUserGetByEmail(t *testing.T) {
 		require.Nil(t, user)
 		require.ErrorIs(t, err, repo.ErrInternal)
 	})
+}
+func TestUserGetByID(t *testing.T) {
+	cleanDB(t)
+	ctx := t.Context()
+
+	t.Run("success", func(t *testing.T) {
+		id, err := userRepo.Create(ctx, &basicUser)
+		require.NoError(t, err)
+		require.Equal(t, 1, id)
+		user, err := userRepo.GetByID(ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, 1, user.ID)
+	})
+	t.Run("user not found", func(t *testing.T) {
+		user, err := userRepo.GetByID(ctx, 2)
+		require.Nil(t, user)
+		require.ErrorIs(t, err, repo.ErrNotFound)
+	})
+	t.Run("internal db error", func(t *testing.T) {
+		user, err := userRepo.GetByID(getBadContext(t), 1)
+		require.Nil(t, user)
+		require.ErrorIs(t, err, repo.ErrInternal)
+	})
+}
+func TestUserUpdateByID(t *testing.T) {
+	ctx := t.Context()
+	cleanDB(t)
+	id, err := userRepo.Create(ctx, &basicUser)
+	require.NoError(t, err)
+	require.Equal(t, 1, id)
+	id, err = userRepo.Create(ctx, &entity.User{Email: "kek@kek.ru", PasswordHash: "123"})
+	require.NoError(t, err)
+	require.Equal(t, 2, id)
+	tt := time.Now()
+	t.Run("only password", func(t *testing.T) {
+		data := entity.User{
+			ID:           1,
+			VerifiedAt:   &tt,
+			PasswordHash: "aboba",
+		}
+		err = userRepo.Update(ctx, &data)
+		require.NoError(t, err)
+		user, err := userRepo.GetByID(ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, user.Email, testEmail)
+		require.Equal(t, user.PasswordHash, data.PasswordHash)
+	})
+	t.Run("only verified at", func(t *testing.T) {
+
+		data := entity.User{
+			ID:         1,
+			VerifiedAt: &tt,
+		}
+		err = userRepo.Update(ctx, &data)
+		require.NoError(t, err)
+		user, err := userRepo.GetByID(ctx, 1)
+		require.NoError(t, err)
+
+		require.Equal(t, user.PasswordHash, "aboba")
+		require.True(t, user.VerifiedAt.Equal(*data.VerifiedAt))
+	})
+	t.Run("only email", func(t *testing.T) {
+
+		data := entity.User{
+			ID:    1,
+			Email: testEmail1,
+		}
+		err = userRepo.Update(ctx, &data)
+		require.NoError(t, err)
+		user, err := userRepo.GetByID(ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, user.Email, data.Email)
+		require.Equal(t, user.PasswordHash, "aboba")
+		require.True(t, user.VerifiedAt.Equal(tt))
+	})
+	t.Run("all fields", func(t *testing.T) {
+		tt := time.Now()
+		data := entity.User{
+			ID:           1,
+			Email:        testEmail,
+			PasswordHash: "123",
+			VerifiedAt:   &tt,
+		}
+		err = userRepo.Update(ctx, &data)
+		require.NoError(t, err)
+		user, err := userRepo.GetByID(ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, user.Email, data.Email)
+		require.Equal(t, user.PasswordHash, data.PasswordHash)
+		require.True(t, user.VerifiedAt.Equal(*data.VerifiedAt))
+	})
+	t.Run("no fields", func(t *testing.T) {
+		data := entity.User{
+			ID: 1,
+		}
+		err = userRepo.Update(ctx, &data)
+		require.NoError(t, err)
+		user, err := userRepo.GetByID(ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, user.Email, testEmail)
+		require.Equal(t, user.PasswordHash, "123")
+	})
+
+	t.Run("user not found", func(t *testing.T) {
+		data := entity.User{
+			ID:    3,
+			Email: testEmail,
+		}
+		err = userRepo.Update(ctx, &data)
+		require.ErrorIs(t, err, repo.ErrNotFound)
+	})
+	t.Run("database internal error", func(t *testing.T) {
+		data := entity.User{
+			ID:    2,
+			Email: testEmail,
+		}
+		err = userRepo.Update(getBadContext(t), &data)
+		require.ErrorIs(t, err, repo.ErrInternal)
+	})
+	t.Run("email already used", func(t *testing.T) {
+		data := entity.User{
+			ID:    2,
+			Email: testEmail,
+		}
+		err = userRepo.Update(ctx, &data)
+		require.ErrorIs(t, err, repo.ErrConflict)
+	})
+
 }

@@ -12,11 +12,14 @@ import (
 	"task-trail/internal/usecase"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 const (
 	refreshPath = "/v1/auth/refresh"
 )
+
+var validate *validator.Validate = validator.New()
 
 type authRoutes struct {
 	contextmanager contextmanager.Gin
@@ -84,12 +87,12 @@ func (r *authRoutes) login(c *gin.Context) {
 		_ = c.Error(r.errHandler.Validation(err))
 		return
 	}
-	userId, at, rt, err := r.u.Login(c, body.Email, body.Password)
+	userID, at, rt, err := r.u.Login(c, body.Email, body.Password)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
-	c.Set("userId", userId)
+	c.Set("userID", userID)
 	r.contextmanager.SetTokens(c, at, rt, r.atName, r.rtName, r.rtPath)
 	c.JSON(http.StatusOK, nil)
 
@@ -134,6 +137,29 @@ func (r *authRoutes) logout(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
+// @Summary 	verify user account
+// @Tags 		/v1/auth
+// @Accept 		json
+// @Produce 	json
+// @Param 		token path string true "token"
+// @Success 	200
+// @Failure		400 {object} customerrors.Err "token is invalid"
+// @Failure		404 {object} customerrors.Err "token or user not found"
+// @Router 		/v1/auth/verify [post]
+func (r *authRoutes) verify(c *gin.Context) {
+	token := c.Param("token")
+	params := request.VerifyRequest{Token: token}
+	if err := validate.Struct(params); err != nil {
+		_ = c.Error(r.errHandler.Validation(err))
+		return
+	}
+	if err := r.u.Verify(c, params.Token); err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, nil)
+}
+
 // @Summary 	check user authentication
 // @Security BearerAuth
 // @Tags 		/v1/auth
@@ -160,5 +186,6 @@ func NewAuthRouter(
 	g.POST("/logout", authMW, r.logout)
 	g.POST("/register", r.register)
 	g.POST("/refresh", r.refresh)
+	g.POST("/verify/:token", r.verify)
 	g.GET("/check", authMW, r.check)
 }

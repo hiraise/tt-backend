@@ -4,9 +4,11 @@ package persistent
 
 import (
 	"context"
+	"fmt"
 	"task-trail/internal/entity"
 	"testing"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/require"
 )
 
@@ -46,4 +48,16 @@ func TestTxSuccessRollback(t *testing.T) {
 	)
 	// check if the transaction was rolled back
 	verifyUsersCount(t, t.Context(), pg.Pool, 0)
+}
+
+func TestTxFailedRollback(t *testing.T) {
+	ctx := t.Context()
+	cleanDB(t)
+
+	err := txManager.DoWithTx(ctx, func(ctx context.Context) error {
+		tx, _ := ctx.Value(txKey{}).(*pgx.Tx)
+		(*tx).Commit(ctx)
+		return fmt.Errorf("kek")
+	})
+	require.ErrorIs(t, err, pgx.ErrTxClosed)
 }

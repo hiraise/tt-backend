@@ -61,7 +61,7 @@ func Run(cfg *config.Config) {
 	txManager := persistent.NewPgTxManager(pg.Pool)
 	userRepo := persistent.NewUserRepo(pg.Pool)
 	tokenRepo := persistent.NewRefreshTokenRepo(pg.Pool)
-	notificationRepo := api.NewSmtpNotificationRepo(smtp, logger, uuidGenerator, cfg.Frontend.ConfrimURL)
+	notificationRepo := api.NewSmtpNotificationRepo(smtp, logger, uuidGenerator, cfg.Frontend.VerifyURL)
 	emailTokenRepo := persistent.NewEmailTokenRepo(pg.Pool)
 	// init uc
 	userUC := useruc.New(

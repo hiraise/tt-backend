@@ -19,17 +19,17 @@ func NewRefreshTokenRepo(db *pgxpool.Pool) *PgRefreshTokenRepository {
 
 func (r *PgRefreshTokenRepository) Create(ctx context.Context, token *entity.RefreshToken) error {
 	query := `INSERT INTO refresh_tokens (id, user_id, expired_at) VALUES ($1, $2, $3)`
-	_, err := r.getDb(ctx).Exec(ctx, query, token.ID, token.UserId, token.ExpiredAt)
+	_, err := r.getDb(ctx).Exec(ctx, query, token.ID, token.UserID, token.ExpiredAt)
 	if err != nil {
 		return r.handleError(err)
 	}
 	return nil
 }
 
-func (r *PgRefreshTokenRepository) GetById(
+func (r *PgRefreshTokenRepository) GetByID(
 	ctx context.Context,
-	tokenId string,
-	userId int,
+	tokenID string,
+	userID int,
 ) (*entity.RefreshToken, error) {
 	query := `
 		SELECT id, user_id, expired_at, created_at, revoked_at
@@ -37,10 +37,10 @@ func (r *PgRefreshTokenRepository) GetById(
 		WHERE id = $1 and user_id = $2`
 	var token entity.RefreshToken
 	if err := r.getDb(ctx).
-		QueryRow(ctx, query, tokenId, userId).
+		QueryRow(ctx, query, tokenID, userID).
 		Scan(
 			&token.ID,
-			&token.UserId,
+			&token.UserID,
 			&token.ExpiredAt,
 			&token.CreatedAt,
 			&token.RevokedAt,
@@ -50,12 +50,12 @@ func (r *PgRefreshTokenRepository) GetById(
 	return &token, nil
 }
 
-func (r *PgRefreshTokenRepository) Revoke(ctx context.Context, tokenId string) error {
+func (r *PgRefreshTokenRepository) Revoke(ctx context.Context, tokenID string) error {
 	query := `
 		UPDATE refresh_tokens
 		SET revoked_at = $1
 		WHERE id = $2 AND revoked_at IS NULL`
-	tag, err := r.getDb(ctx).Exec(ctx, query, time.Now(), tokenId)
+	tag, err := r.getDb(ctx).Exec(ctx, query, time.Now(), tokenID)
 
 	if err != nil {
 		return r.handleError(err)
@@ -66,12 +66,12 @@ func (r *PgRefreshTokenRepository) Revoke(ctx context.Context, tokenId string) e
 	return nil
 }
 
-func (r *PgRefreshTokenRepository) RevokeAllUsersTokens(ctx context.Context, userId int) (int, error) {
+func (r *PgRefreshTokenRepository) RevokeAllUsersTokens(ctx context.Context, userID int) (int, error) {
 	query := `
 		UPDATE refresh_tokens
 		SET revoked_at = $1
 		WHERE user_id = $2 AND revoked_at IS NULL AND expired_at >= $3`
-	tag, err := r.getDb(ctx).Exec(ctx, query, time.Now(), userId, time.Now())
+	tag, err := r.getDb(ctx).Exec(ctx, query, time.Now(), userID, time.Now())
 	if err != nil {
 		return 0, r.handleError(err)
 	}

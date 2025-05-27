@@ -28,7 +28,7 @@ func New(logger logger.Logger, host string, port int, login string, password str
 	return &GomailSender{client: client, logger: logger, from: sender}
 }
 
-func (s *GomailSender) Send(msg smtp.Message, eventId string) error {
+func (s *GomailSender) Send(msg smtp.Message, eventID string) error {
 	m := mail.NewMsg()
 	if err := m.From(s.from); err != nil {
 		return err
@@ -38,15 +38,15 @@ func (s *GomailSender) Send(msg smtp.Message, eventId string) error {
 	}
 	m.Subject(msg.Subject)
 	m.SetBodyString(mail.TypeTextHTML, msg.Text)
-	s.logger.Info("start email sending event", "eventId", eventId, "recipients", msg.Recipients)
-	go func(msg *mail.Msg, eventId string, logger logger.Logger) {
+	s.logger.Info("start email sending event", "eventID", eventID, "recipients", msg.Recipients)
+	go func(msg *mail.Msg, eventID string, logger logger.Logger) {
 		err := s.client.DialAndSend(m)
 		if err != nil {
-			logger.Error("sending email failed", "eventId", eventId, "error", err)
+			logger.Error("sending email failed", "eventID", eventID, "error", err)
 			return
 		}
-		logger.Info("email successfully sent", "eventId", eventId)
-	}(m, eventId, s.logger)
+		logger.Info("email successfully sent", "eventID", eventID)
+	}(m, eventID, s.logger)
 
 	return nil
 }

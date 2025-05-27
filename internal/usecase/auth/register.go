@@ -24,13 +24,13 @@ func (u *UseCase) Register(ctx context.Context, email string, password string) e
 			return u.errHandler.InternalTrouble(err, "failed to create new user", "email", email)
 		}
 		// create email token
-		tokenId, err := u.createEmailToken(ctx, id, email, entity.PurposeConfirmation)
+		tokenID, err := u.createEmailToken(ctx, id, entity.PurposeVerification)
 		if err != nil {
 			return err
 		}
-		// send confirmation
-		if err := u.notificationRepo.SendConfirmationEmail(ctx, email, tokenId); err != nil {
-			return u.errHandler.InternalTrouble(err, "confirmation email sending failed", "userId", id)
+		// send verification
+		if err := u.notificationRepo.SendVerificationEmail(ctx, email, tokenID); err != nil {
+			return u.errHandler.InternalTrouble(err, "verification email sending failed", "userID", id)
 		}
 		return nil
 	}

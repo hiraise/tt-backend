@@ -1,7 +1,7 @@
 package smtp
 
 type Sender interface {
-	Send(msg Message, eventId string) error
+	Send(msg Message, eventID string) error
 }
 
 type Message struct {

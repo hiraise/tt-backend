@@ -32,6 +32,16 @@ jobs:
       AUTH_REFRESH_TOKEN_SECRET: kek
       AUTH_REFRESH_TOKEN_LIFETIME_MIN: 1440
       AUTH_TOKEN_ISSUER: dev.tasktrail.net
+
+      SMTP_HOST: mail.example.com
+      SMTP_PORT: 587
+      SMTP_USER: root
+      SMTP_PASSWORD: root
+      SMTP_SENDER: TaskTrail <root@example.com>
+      FRONTEND_URL: http://localhost:3000
+      FRONTEND_VERIFY_URL: http://localhost:3000/verfiy
+      FRONTEND_RESET_PASSWORD_URL: http://localhost:3000/reset
+
     runs-on: ubuntu-latest
     container: golang:1.24
     services:

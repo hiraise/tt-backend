@@ -23,27 +23,29 @@ type UserRepository interface {
 	Create(ctx context.Context, user *entity.User) (int, error)
 	EmailIsTaken(ctx context.Context, email string) (bool, error)
 	GetByEmail(ctx context.Context, email string) (*entity.User, error)
+	GetByID(ctx context.Context, ID int) (*entity.User, error)
+	Update(ctx context.Context, user *entity.User) error
 }
 type VerificationRepository interface {
-	Create(ctx context.Context, userId int, code int) error
+	Create(ctx context.Context, userID int, code int) error
 	Verify(ctx context.Context, code int) error
 }
 
 type RefreshTokenRepository interface {
 	Create(ctx context.Context, token *entity.RefreshToken) error
-	GetById(ctx context.Context, tokenId string, userId int) (*entity.RefreshToken, error)
-	Revoke(ctx context.Context, tokenId string) error
-	RevokeAllUsersTokens(ctx context.Context, userId int) (int, error)
+	GetByID(ctx context.Context, tokenID string, userID int) (*entity.RefreshToken, error)
+	Revoke(ctx context.Context, tokenID string) error
+	RevokeAllUsersTokens(ctx context.Context, userID int) (int, error)
 	DeleteRevokedAndOldTokens(ctx context.Context, olderThan int) (int, error)
 }
 
 type EmailTokenRepository interface {
-	GetById(ctx context.Context, tokenId string) (*entity.EmailToken, error)
+	GetByID(ctx context.Context, tokenID string) (*entity.EmailToken, error)
 	Create(ctx context.Context, token entity.EmailToken) error
-	Use(ctx context.Context, tokenId string) error
+	Use(ctx context.Context, tokenID string) error
 }
 
 type NotificationRepository interface {
-	SendConfirmationEmail(ctx context.Context, email string, token string) error
+	SendVerificationEmail(ctx context.Context, email string, token string) error
 	// SendResetPasswordEmail(ctx context.Context)
 }

@@ -14,6 +14,7 @@ const (
 	InternalErr
 	ValidationErr
 	ConflictErr
+	NotFoundErr
 )
 
 const sourceCodeOffset = 2

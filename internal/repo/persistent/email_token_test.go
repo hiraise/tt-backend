@@ -19,57 +19,57 @@ func beforeEachEmailTest(t *testing.T) {
 	require.Equal(t, 1, id)
 }
 
-func createEmailConfirmToken(ctx context.Context, userId int, tokenId string) error {
+func createEmailVerificationToken(ctx context.Context, userID int, tokenID string) error {
 	e := entity.EmailToken{
-		ID:        tokenId,
+		ID:        tokenID,
 		ExpiredAt: time.Now().Add(time.Minute * 10),
-		UserId:    userId,
-		Purpose:   entity.PurposeConfirmation,
+		UserID:    userID,
+		Purpose:   entity.PurposeVerification,
 	}
 	return emailTokenRepo.Create(ctx, e)
 }
-func TestCreateConfirmationToken(t *testing.T) {
+func TestCreateVerificationToken(t *testing.T) {
 	ctx := t.Context()
 	beforeEachEmailTest(t)
 
 	t.Run("successfully create", func(t *testing.T) {
-		err := createEmailConfirmToken(ctx, 1, testTokenId)
+		err := createEmailVerificationToken(ctx, 1, testTokenID)
 		require.NoError(t, err)
 	})
 	t.Run("already exists", func(t *testing.T) {
-		err := createEmailConfirmToken(ctx, 1, testTokenId)
+		err := createEmailVerificationToken(ctx, 1, testTokenID)
 		require.ErrorIs(t, err, repo.ErrConflict)
 	})
 	t.Run("user not found", func(t *testing.T) {
-		err := createEmailConfirmToken(ctx, 2, testTokenId1)
+		err := createEmailVerificationToken(ctx, 2, testTokenID1)
 		require.ErrorIs(t, err, repo.ErrNotFound)
 	})
 	t.Run("database internal error", func(t *testing.T) {
-		err := createEmailConfirmToken(getBadContext(t), 1, testTokenId)
+		err := createEmailVerificationToken(getBadContext(t), 1, testTokenID)
 		require.ErrorIs(t, err, repo.ErrInternal)
 	})
 
 }
 
-func TestEmailTokenGetById(t *testing.T) {
+func TestEmailTokenGetByID(t *testing.T) {
 	ctx := t.Context()
 	beforeEachEmailTest(t)
-	err := createEmailConfirmToken(ctx, 1, testTokenId)
+	err := createEmailVerificationToken(ctx, 1, testTokenID)
 	require.NoError(t, err)
 
-	t.Run("successfully get confirmation token by ID", func(t *testing.T) {
-		token, err := emailTokenRepo.GetById(ctx, testTokenId)
+	t.Run("successfully get verification token by ID", func(t *testing.T) {
+		token, err := emailTokenRepo.GetByID(ctx, testTokenID)
 		require.NoError(t, err)
-		require.Equal(t, testTokenId, token.ID)
-		require.Equal(t, entity.PurposeConfirmation, token.Purpose)
+		require.Equal(t, testTokenID, token.ID)
+		require.Equal(t, entity.PurposeVerification, token.Purpose)
 	})
 	t.Run("token not found", func(t *testing.T) {
-		token, err := emailTokenRepo.GetById(ctx, testTokenId1)
+		token, err := emailTokenRepo.GetByID(ctx, testTokenID1)
 		require.Nil(t, token)
 		require.ErrorIs(t, err, repo.ErrNotFound)
 	})
 	t.Run("database internal error", func(t *testing.T) {
-		token, err := emailTokenRepo.GetById(getBadContext(t), testTokenId)
+		token, err := emailTokenRepo.GetByID(getBadContext(t), testTokenID)
 		require.Nil(t, token)
 		require.ErrorIs(t, err, repo.ErrInternal)
 	})
@@ -78,25 +78,25 @@ func TestEmailTokenGetById(t *testing.T) {
 func TestEmailTokenUse(t *testing.T) {
 	ctx := t.Context()
 	beforeEachEmailTest(t)
-	err := createEmailConfirmToken(ctx, 1, testTokenId)
+	err := createEmailVerificationToken(ctx, 1, testTokenID)
 	require.NoError(t, err)
 	t.Run("successfully use token", func(t *testing.T) {
-		err := emailTokenRepo.Use(ctx, testTokenId)
+		err := emailTokenRepo.Use(ctx, testTokenID)
 		require.NoError(t, err)
-		token, err := emailTokenRepo.GetById(ctx, testTokenId)
+		token, err := emailTokenRepo.GetByID(ctx, testTokenID)
 		require.NoError(t, err)
 		require.NotNil(t, token.UsedAt)
 	})
 	t.Run("token not found", func(t *testing.T) {
-		err := emailTokenRepo.Use(ctx, testTokenId1)
+		err := emailTokenRepo.Use(ctx, testTokenID1)
 		require.ErrorIs(t, err, repo.ErrNotFound)
 	})
 	t.Run("token already used", func(t *testing.T) {
-		err := emailTokenRepo.Use(ctx, testTokenId)
+		err := emailTokenRepo.Use(ctx, testTokenID)
 		require.ErrorIs(t, err, repo.ErrNotFound)
 	})
 	t.Run("database internal error", func(t *testing.T) {
-		err := emailTokenRepo.Use(getBadContext(t), testTokenId)
+		err := emailTokenRepo.Use(getBadContext(t), testTokenID)
 		require.ErrorIs(t, err, repo.ErrInternal)
 	})
 }

@@ -55,7 +55,7 @@ func msgForTag(fe validator.FieldError) string {
 	switch fe.Tag() {
 	case "required":
 		return "field required"
-	case "email":
+	case "email", "uuid":
 		return "format is incorrect"
 	case "min":
 		return fmt.Sprintf("min length: %s symbols", fe.Param())

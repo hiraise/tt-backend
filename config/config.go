@@ -47,7 +47,7 @@ type SMTP struct {
 
 type Frontend struct {
 	URL              string `env:"FRONTEND_URL,required"`
-	ConfrimURL       string `env:"FRONTEND_CONFIRM_URL,required"`
+	VerifyURL        string `env:"FRONTEND_VERIFY_URL,required"`
 	ResetPasswordURL string `env:"FRONTEND_RESET_PASSWORD_URL,required"`
 }
 type Config struct {

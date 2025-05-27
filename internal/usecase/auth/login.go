@@ -32,16 +32,16 @@ func (u *UseCase) Login(ctx context.Context, email string, password string) (int
 	t := &entity.RefreshToken{
 		ID:        rt.Jti,
 		ExpiredAt: rt.Exp,
-		UserId:    user.ID,
+		UserID:    user.ID,
 	}
 	if err := u.rtRepo.Create(ctx, t); err != nil {
 		if errors.Is(err, repo.ErrConflict) {
-			return 0, nil, nil, u.errHandler.Conflict(err, "refresh token already exists", "tokenId", t.ID, "userId", user.ID)
+			return 0, nil, nil, u.errHandler.Conflict(err, "refresh token already exists", "tokenID", t.ID, "userID", user.ID)
 		}
 		if errors.Is(err, repo.ErrNotFound) {
-			return 0, nil, nil, u.errHandler.InternalTrouble(err, "user not found", "tokenId", t.ID, "userId", user.ID)
+			return 0, nil, nil, u.errHandler.InternalTrouble(err, "user not found", "tokenID", t.ID, "userID", user.ID)
 		}
-		return 0, nil, nil, u.errHandler.InternalTrouble(err, "failed to create new refresh token", "tokenId", t.ID, "userId", user.ID)
+		return 0, nil, nil, u.errHandler.InternalTrouble(err, "failed to create new refresh token", "tokenID", t.ID, "userID", user.ID)
 	}
 	return user.ID, at, rt, nil
 }

@@ -5,13 +5,13 @@ import "time"
 type EmailTokenPurpose string
 
 const (
-	PurposeConfirmation EmailTokenPurpose = "confirm"
+	PurposeVerification EmailTokenPurpose = "verify"
 	PurposeReset        EmailTokenPurpose = "reset"
 )
 
 type RefreshToken struct {
 	ID        string
-	UserId    int
+	UserID    int
 	CreatedAt time.Time
 	ExpiredAt time.Time
 	RevokedAt *time.Time
@@ -19,7 +19,7 @@ type RefreshToken struct {
 
 type EmailToken struct {
 	ID        string
-	UserId    int
+	UserID    int
 	Purpose   EmailTokenPurpose
 	CreatedAt time.Time
 	ExpiredAt time.Time
