@@ -63,8 +63,9 @@ jobs:
     timeout-minutes: 7
     steps:
       - run: pwd
-      - run: cd task-trail
-      - run: cd migrations
+      - run: ls -la
+      - run: cd task-trail && ls -la
+      - run: cd task-trail/migrations && ls -la
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
