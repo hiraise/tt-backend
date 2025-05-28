@@ -119,8 +119,9 @@ func TestUserUpdateByID(t *testing.T) {
 	id, err = userRepo.Create(ctx, &entity.User{Email: "kek@kek.ru", PasswordHash: "123"})
 	require.NoError(t, err)
 	require.Equal(t, 2, id)
-	tt := time.Now()
+
 	t.Run("only password", func(t *testing.T) {
+		tt := time.Now()
 		data := entity.User{
 			ID:           1,
 			VerifiedAt:   &tt,
@@ -134,7 +135,7 @@ func TestUserUpdateByID(t *testing.T) {
 		require.Equal(t, user.PasswordHash, data.PasswordHash)
 	})
 	t.Run("only verified at", func(t *testing.T) {
-
+		tt := time.Now()
 		data := entity.User{
 			ID:         1,
 			VerifiedAt: &tt,
@@ -148,7 +149,7 @@ func TestUserUpdateByID(t *testing.T) {
 		require.True(t, user.VerifiedAt.Equal(*data.VerifiedAt))
 	})
 	t.Run("only email", func(t *testing.T) {
-
+		tt := time.Now()
 		data := entity.User{
 			ID:    1,
 			Email: testEmail1,
