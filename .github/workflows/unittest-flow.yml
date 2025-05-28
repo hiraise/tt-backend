@@ -61,9 +61,8 @@ jobs:
           --health-retries 5
     timeout-minutes: 7
     steps:
-      - run: echo "${{ github.action_path }}"
       - run: echo "Путь = ${{ github.workspace }}/migrations"
-      - run:  ls -la "${{ github.workspace }}/migrations"
+      - run:  ls -la "${{ github.workspace }}/task-trail/migrations"
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
