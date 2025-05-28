@@ -175,7 +175,8 @@ func TestUserUpdateByID(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, user.Email, data.Email)
 		require.Equal(t, user.PasswordHash, data.PasswordHash)
-		fmt.Println(user.VerifiedAt.Equal(*data.VerifiedAt))
+		fmt.Println(data.VerifiedAt.Unix())
+		fmt.Println(user.VerifiedAt.Unix())
 		require.True(t, user.VerifiedAt.Equal(*data.VerifiedAt))
 	})
 	t.Run("no fields", func(t *testing.T) {
