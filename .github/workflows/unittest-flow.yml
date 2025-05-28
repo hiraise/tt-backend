@@ -62,7 +62,7 @@ jobs:
     timeout-minutes: 7
     steps:
       - run: echo "Путь = ${{ github.workspace }}/migrations"
-      - run: ls -la ${{ github.workspace }}
+      - run: ls -la
       - run:  ls -la "${{ github.workspace }}/task-trail/migrations"
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
