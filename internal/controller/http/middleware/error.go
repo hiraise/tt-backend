@@ -20,8 +20,8 @@ func NewError(l logger.Logger, m contextmanager.Gin) gin.HandlerFunc {
 				a := response.NewFromErrBase(e)
 				c.AbortWithStatusJSON(a.Status, a)
 			default:
-				// TODO: add iternal error
-				c.AbortWithStatusJSON(500, "jopa")
+				l.Error("unexpected error", "error", err)
+				c.AbortWithStatusJSON(500, "unexpected error")
 			}
 		}
 
