@@ -63,7 +63,7 @@ jobs:
     steps:
       - run: echo "Путь = ${{ github.workspace }}/migrations"
       - run: ls -la
-      - run:  ls -la "${{ github.workspace }}/task-trail/migrations"
+      - run: ls -la ${{ github.path }}
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
