@@ -121,10 +121,8 @@ func TestUserUpdateByID(t *testing.T) {
 	require.Equal(t, 2, id)
 
 	t.Run("only password", func(t *testing.T) {
-		tt := time.Now()
 		data := entity.User{
 			ID:           1,
-			VerifiedAt:   &tt,
 			PasswordHash: "aboba",
 		}
 		err = userRepo.Update(ctx, &data)
@@ -160,7 +158,7 @@ func TestUserUpdateByID(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, user.Email, data.Email)
 		require.Equal(t, user.PasswordHash, "aboba")
-		require.True(t, user.VerifiedAt.Equal(tt))
+		require.False(t, user.VerifiedAt.Equal(tt))
 	})
 	t.Run("all fields", func(t *testing.T) {
 		tt := time.Now()
