@@ -202,6 +202,42 @@
                 }
             }
         },
+        "/v1/auth/resend-verification": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/v1/auth"
+                ],
+                "summary": "resend account verification email",
+                "parameters": [
+                    {
+                        "description": "user email",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.EmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/customerrors.Err"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/auth/verify": {
             "post": {
                 "consumes": [
@@ -300,6 +336,17 @@
                 },
                 "type": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.EmailRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
                 }
             }
         },

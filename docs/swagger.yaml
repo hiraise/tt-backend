@@ -16,6 +16,13 @@ definitions:
       type:
         type: integer
     type: object
+  request.EmailRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   request.User:
     properties:
       email:
@@ -156,6 +163,29 @@ paths:
           schema:
             $ref: '#/definitions/customerrors.Err'
       summary: register new user
+      tags:
+      - /v1/auth
+  /v1/auth/resend-verification:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: user email
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.EmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: invalid request body
+          schema:
+            $ref: '#/definitions/customerrors.Err'
+      summary: resend account verification email
       tags:
       - /v1/auth
   /v1/auth/verify:
