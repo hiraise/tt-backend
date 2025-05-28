@@ -4,6 +4,7 @@ package persistent
 
 import (
 	"context"
+	"fmt"
 	"task-trail/internal/entity"
 	"task-trail/internal/repo"
 	"testing"
@@ -142,7 +143,8 @@ func TestUserUpdateByID(t *testing.T) {
 		require.NoError(t, err)
 		user, err := userRepo.GetByID(ctx, 1)
 		require.NoError(t, err)
-
+		fmt.Println(user.VerifiedAt)
+		fmt.Println(data.VerifiedAt)
 		require.Equal(t, user.PasswordHash, "aboba")
 		require.True(t, user.VerifiedAt.Equal(*data.VerifiedAt))
 	})
@@ -174,6 +176,8 @@ func TestUserUpdateByID(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, user.Email, data.Email)
 		require.Equal(t, user.PasswordHash, data.PasswordHash)
+		fmt.Println(user.VerifiedAt)
+		fmt.Println(data.VerifiedAt)
 		require.True(t, user.VerifiedAt.Equal(*data.VerifiedAt))
 	})
 	t.Run("no fields", func(t *testing.T) {
