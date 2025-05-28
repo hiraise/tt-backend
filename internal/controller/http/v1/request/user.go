@@ -8,3 +8,7 @@ type User struct {
 type VerifyRequest struct {
 	Token string `validate:"required,uuid"`
 }
+
+type EmailRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}

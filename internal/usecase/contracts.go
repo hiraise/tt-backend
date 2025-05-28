@@ -11,6 +11,7 @@ type Authentication interface {
 	Logout(ctx context.Context, rt string) error
 	Refresh(ctx context.Context, rt string) (*token.Token, *token.Token, error)
 	Verify(ctx context.Context, tokenID string) error
+	Resend(ctx context.Context, email string) error
 }
 
 type User interface {

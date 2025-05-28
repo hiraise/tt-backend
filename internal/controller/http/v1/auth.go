@@ -160,6 +160,27 @@ func (r *authRoutes) verify(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
+// @Summary 	resend account verification email
+// @Tags 		/v1/auth
+// @Accept 		json
+// @Produce 	json
+// @Param 		body body request.EmailRequest true "user email"
+// @Success 	200
+// @Failure		400 {object} customerrors.Err "invalid request body"
+// @Router 		/v1/auth/resend-verification [post]
+func (r *authRoutes) resend(c *gin.Context) {
+	var body request.EmailRequest
+	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
+		_ = c.Error(r.errHandler.Validation(err))
+		return
+	}
+	if err := r.u.Resend(c, body.Email); err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, nil)
+}
+
 // @Summary 	check user authentication
 // @Security BearerAuth
 // @Tags 		/v1/auth
@@ -186,6 +207,7 @@ func NewAuthRouter(
 	g.POST("/logout", authMW, r.logout)
 	g.POST("/register", r.register)
 	g.POST("/refresh", r.refresh)
+	g.POST("/resend-verification", r.resend)
 	g.POST("/verify/:token", r.verify)
 	g.GET("/check", authMW, r.check)
 }
