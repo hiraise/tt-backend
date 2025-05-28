@@ -71,6 +71,7 @@ jobs:
         run: pwd
       - name: List files
         run: ls -la
+      - run: ls -la "$GITHUB_WORKSPACE"
 
       - name: Run tests and generate coverage report
         run: make test-integration
