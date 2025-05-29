@@ -202,7 +202,7 @@ func (r *authRoutes) forgotPWD(c *gin.Context) {
 // @Tags 		/v1/auth
 // @Accept 		json
 // @Produce 	json
-// @Param 		body body request.ResetPasswordRequest true "user email"
+// @Param 		body body request.ResetPasswordRequest true "token and new password"
 // @Success 	200
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Router 		/v1/auth/password/reset [post]
