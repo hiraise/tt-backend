@@ -47,6 +47,13 @@ definitions:
     - email
     - password
     type: object
+  request.VerifyRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
 info:
   contact:
     email: musaev.ae@hiraise.net
@@ -252,10 +259,11 @@ paths:
       - application/json
       parameters:
       - description: token
-        in: path
-        name: token
+        in: body
+        name: body
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/request.VerifyRequest'
       produces:
       - application/json
       responses:

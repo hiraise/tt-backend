@@ -333,11 +333,13 @@ const docTemplate = `{
                 "summary": "verify user account",
                 "parameters": [
                     {
-                        "type": "string",
                         "description": "token",
-                        "name": "token",
-                        "in": "path",
-                        "required": true
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.VerifyRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -462,6 +464,17 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 8
+                }
+            }
+        },
+        "request.VerifyRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
                 }
             }
         }

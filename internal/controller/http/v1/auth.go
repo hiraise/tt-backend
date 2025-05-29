@@ -12,14 +12,11 @@ import (
 	"task-trail/internal/usecase"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 const (
 	refreshPath = "/v1/auth/refresh"
 )
-
-var validate *validator.Validate = validator.New()
 
 type authRoutes struct {
 	contextmanager contextmanager.Gin
@@ -141,19 +138,18 @@ func (r *authRoutes) logout(c *gin.Context) {
 // @Tags 		/v1/auth
 // @Accept 		json
 // @Produce 	json
-// @Param 		token path string true "token"
+// @Param 		body body request.VerifyRequest true "token"
 // @Success 	200
 // @Failure		400 {object} customerrors.Err "token is invalid"
 // @Failure		404 {object} customerrors.Err "token or user not found"
 // @Router 		/v1/auth/verify [post]
 func (r *authRoutes) verify(c *gin.Context) {
-	token := c.Param("token")
-	params := request.VerifyRequest{Token: token}
-	if err := validate.Struct(params); err != nil {
+	var body request.VerifyRequest
+	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
 		_ = c.Error(r.errHandler.Validation(err))
 		return
 	}
-	if err := r.u.Verify(c, params.Token); err != nil {
+	if err := r.u.Verify(c, body.Token); err != nil {
 		_ = c.Error(err)
 		return
 	}
@@ -252,6 +248,6 @@ func NewAuthRouter(
 	g.POST("/resend-verification", r.resend)
 	g.POST("/password/forgot", r.forgotPWD)
 	g.POST("/password/reset", r.resetPWD)
-	g.POST("/verify/:token", r.verify)
+	g.POST("/verify", r.verify)
 	g.GET("/check", authMW, r.check)
 }
