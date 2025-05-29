@@ -47,5 +47,5 @@ type EmailTokenRepository interface {
 
 type NotificationRepository interface {
 	SendVerificationEmail(ctx context.Context, email string, token string) error
-	// SendResetPasswordEmail(ctx context.Context)
+	SendResetPasswordEmail(ctx context.Context, email string, token string) error
 }

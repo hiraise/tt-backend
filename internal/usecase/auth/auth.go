@@ -120,3 +120,52 @@ func (u *UseCase) createEmailToken(ctx context.Context, userID int, purpose enti
 	}
 	return et.ID, nil
 }
+
+func (u *UseCase) useEmailToken(ctx context.Context, tokenID string) error {
+	if err := u.etRepo.Use(ctx, tokenID); err != nil {
+		if errors.Is(err, repo.ErrNotFound) {
+			return u.errHandler.NotFound(err, "email token not found", "token", tokenID)
+		}
+		return u.errHandler.InternalTrouble(err, "email token update failed", "token", tokenID)
+	}
+	return nil
+}
+
+func (u *UseCase) getEmailToken(ctx context.Context, tokenID string) (*entity.EmailToken, error) {
+	token, err := u.etRepo.GetByID(ctx, tokenID)
+	if err != nil {
+		if errors.Is(err, repo.ErrNotFound) {
+			return nil, u.errHandler.NotFound(err, "email token not found", "tokenID", tokenID)
+		}
+		return nil, u.errHandler.InternalTrouble(err, "failed to get email token", "tokenID", tokenID)
+	}
+	if token.UsedAt != nil {
+		return nil, u.errHandler.BadRequest(err, "email token already used", "token", tokenID)
+	}
+	if token.ExpiredAt.Unix() <= time.Now().Unix() {
+		return nil, u.errHandler.BadRequest(err, "email token is expired", "token", tokenID)
+	}
+	return token, nil
+
+}
+
+func (u *UseCase) updateUser(ctx context.Context, user *entity.User) error {
+	if err := u.userRepo.Update(ctx, user); err != nil {
+		if errors.Is(err, repo.ErrNotFound) {
+			return u.errHandler.NotFound(err, "user not found", "userID", user.ID)
+		}
+		return u.errHandler.InternalTrouble(err, "user update failed", "userID", user.ID)
+	}
+	return nil
+}
+
+func (u *UseCase) getUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+	user, err := u.userRepo.GetByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, repo.ErrNotFound) {
+			return nil, u.errHandler.Ok(err, "user not found", "email", email)
+		}
+		return nil, u.errHandler.InternalTrouble(err, "failed to get user", "email", email)
+	}
+	return user, err
+}

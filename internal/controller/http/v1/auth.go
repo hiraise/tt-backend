@@ -174,7 +174,49 @@ func (r *authRoutes) resend(c *gin.Context) {
 		_ = c.Error(r.errHandler.Validation(err))
 		return
 	}
-	if err := r.u.Resend(c, body.Email); err != nil {
+	if err := r.u.ResendVerificationEmail(c, body.Email); err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, nil)
+}
+
+// @Summary 	send reset password email
+// @Tags 		/v1/auth
+// @Accept 		json
+// @Produce 	json
+// @Param 		body body request.EmailRequest true "user email"
+// @Success 	200
+// @Failure		400 {object} customerrors.Err "invalid request body"
+// @Router 		/v1/auth/password/forgot [post]
+func (r *authRoutes) forgotPWD(c *gin.Context) {
+	var body request.EmailRequest
+	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
+		_ = c.Error(r.errHandler.Validation(err))
+		return
+	}
+	if err := r.u.SendPasswordResetEmail(c, body.Email); err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, nil)
+}
+
+// @Summary 	reset user password
+// @Tags 		/v1/auth
+// @Accept 		json
+// @Produce 	json
+// @Param 		body body request.ResetPasswordRequest true "user email"
+// @Success 	200
+// @Failure		400 {object} customerrors.Err "invalid request body"
+// @Router 		/v1/auth/password/reset [post]
+func (r *authRoutes) resetPWD(c *gin.Context) {
+	var body request.ResetPasswordRequest
+	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
+		_ = c.Error(r.errHandler.Validation(err))
+		return
+	}
+	if err := r.u.ResetPassword(c, body.Token, body.Password); err != nil {
 		_ = c.Error(err)
 		return
 	}
@@ -208,6 +250,8 @@ func NewAuthRouter(
 	g.POST("/register", r.register)
 	g.POST("/refresh", r.refresh)
 	g.POST("/resend-verification", r.resend)
+	g.POST("/password/forgot", r.forgotPWD)
+	g.POST("/password/reset", r.resetPWD)
 	g.POST("/verify/:token", r.verify)
 	g.GET("/check", authMW, r.check)
 }

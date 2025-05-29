@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"task-trail/internal/customerrors"
 	"task-trail/test/mocks"
 
@@ -56,4 +57,13 @@ func mockTx(ctx context.Context, txManager mocks.MockTxManager) {
 				return f(ctx)
 			},
 		)
+}
+
+func mockHashPwd(s mocks.MockPasswordService, failed bool) {
+	if failed {
+		s.EXPECT().HashPassword(gomock.Any()).Return("", fmt.Errorf("hash failed"))
+	} else {
+		s.EXPECT().HashPassword(gomock.Any()).Return("hashedPassword", nil)
+	}
+
 }

@@ -9,10 +9,11 @@ import (
 )
 
 type SmtpNotificationRepo struct {
-	sender          smtp.Sender
-	logger          logger.Logger
-	uuidGenerator   uuid.Generator
-	verificationUrl string
+	sender           smtp.Sender
+	logger           logger.Logger
+	uuidGenerator    uuid.Generator
+	verificationUrl  string
+	resetPasswordURL string
 }
 
 func NewSmtpNotificationRepo(
@@ -20,12 +21,14 @@ func NewSmtpNotificationRepo(
 	logger logger.Logger,
 	uuidGenerator uuid.Generator,
 	verificationUrl string,
+	resetPasswordURL string,
 ) *SmtpNotificationRepo {
 	return &SmtpNotificationRepo{
-		sender:          sender,
-		logger:          logger,
-		uuidGenerator:   uuidGenerator,
-		verificationUrl: verificationUrl,
+		sender:           sender,
+		logger:           logger,
+		uuidGenerator:    uuidGenerator,
+		verificationUrl:  verificationUrl,
+		resetPasswordURL: resetPasswordURL,
 	}
 }
 
@@ -35,6 +38,19 @@ func (r *SmtpNotificationRepo) SendVerificationEmail(ctx context.Context, email 
 		Subject:    "Account Verification",
 		Text:       r.verificationUrl + token,
 	}
+	return r.send(msg)
+}
+
+func (r *SmtpNotificationRepo) SendResetPasswordEmail(ctx context.Context, email string, token string) error {
+	msg := smtp.Message{
+		Recipients: []string{email},
+		Subject:    "Reset password",
+		Text:       r.resetPasswordURL + token,
+	}
+	return r.send(msg)
+}
+
+func (r *SmtpNotificationRepo) send(msg smtp.Message) error {
 	eventID := r.uuidGenerator.Generate()
 	if err := r.sender.Send(msg, eventID); err != nil {
 		return repo.Wrap(repo.ErrInternal, err)

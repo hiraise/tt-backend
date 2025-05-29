@@ -12,24 +12,28 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestUseCaseVerify(t *testing.T) {
+func TestUseCaseResetPassword(t *testing.T) {
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	type args struct {
-		ctx     context.Context
-		tokenID string
+		ctx      context.Context
+		tokenID  string
+		password string
 	}
 
-	ctx := t.Context()
+	ctx := context.Background()
 	a := args{ctx: ctx,
-		tokenID: "123",
+		tokenID:  "123",
+		password: "123",
 	}
+
 	validToken := entity.EmailToken{
 		ID:        "123",
 		ExpiredAt: time.Now().Add(time.Minute * 10),
 		UserID:    1,
-		Purpose:   entity.PurposeVerification,
+		Purpose:   entity.PurposeReset,
 	}
 	tests := []struct {
 		name        string
@@ -45,21 +49,21 @@ func TestUseCaseVerify(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
+				mockHashPwd(deps.passwordSvc, false)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
-
 				deps.userRepo.EXPECT().Update(ctx, gomock.Any()).Return(nil)
 				deps.etRepo.EXPECT().Use(ctx, gomock.Any()).Return(nil)
 				return uc
 			},
 			wantErr: false,
 		},
-
 		{
 			name: "email token not found",
 			args: a,
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
+				mockHashPwd(deps.passwordSvc, false)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
 
 				deps.userRepo.EXPECT().Update(ctx, gomock.Any()).Return(nil)
@@ -76,6 +80,7 @@ func TestUseCaseVerify(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
+				mockHashPwd(deps.passwordSvc, false)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
 
 				deps.userRepo.EXPECT().Update(ctx, gomock.Any()).Return(nil)
@@ -92,6 +97,7 @@ func TestUseCaseVerify(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
+				mockHashPwd(deps.passwordSvc, false)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
 				deps.userRepo.EXPECT().Update(ctx, gomock.Any()).Return(repo.ErrNotFound)
 				return uc
@@ -101,11 +107,12 @@ func TestUseCaseVerify(t *testing.T) {
 			wantErrMsg:  "user not found",
 		},
 		{
-			name: "user update failed",
+			name: "",
 			args: a,
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
+				mockHashPwd(deps.passwordSvc, false)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
 				deps.userRepo.EXPECT().Update(ctx, gomock.Any()).Return(repo.ErrInternal)
 				return uc
@@ -171,11 +178,25 @@ func TestUseCaseVerify(t *testing.T) {
 			wantErrType: customerrors.InternalErr,
 			wantErrMsg:  "failed to get email token",
 		},
+		{
+			name: "password hashing failed",
+			args: a,
+			uc: func(ctrl *gomock.Controller) *UseCase {
+				uc, deps := mockUseCase(ctrl)
+				mockTx(ctx, deps.txManager)
+				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
+				mockHashPwd(deps.passwordSvc, true)
+				return uc
+			},
+			wantErr:     true,
+			wantErrType: customerrors.InternalErr,
+			wantErrMsg:  "password hashing failed",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := tt.uc(ctrl)
-			err := u.Verify(tt.args.ctx, tt.args.tokenID)
+			err := u.ResetPassword(tt.args.ctx, tt.args.tokenID, tt.args.password)
 			if tt.wantErr {
 				var e *customerrors.Err
 				if err == nil {

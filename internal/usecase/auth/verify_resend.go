@@ -2,20 +2,15 @@ package auth
 
 import (
 	"context"
-	"errors"
 	"task-trail/internal/entity"
-	"task-trail/internal/repo"
 )
 
-func (u *UseCase) Resend(ctx context.Context, email string) error {
+func (u *UseCase) ResendVerificationEmail(ctx context.Context, email string) error {
 
 	f := func(ctx context.Context) error {
-		user, err := u.userRepo.GetByEmail(ctx, email)
+		user, err := u.getUserByEmail(ctx, email)
 		if err != nil {
-			if errors.Is(err, repo.ErrNotFound) {
-				return u.errHandler.Ok(err, "user not found", "email", email)
-			}
-			return u.errHandler.InternalTrouble(err, "failed to get user", "email", email)
+			return err
 		}
 		// create email token
 		tokenID, err := u.createEmailToken(ctx, user.ID, entity.PurposeVerification)

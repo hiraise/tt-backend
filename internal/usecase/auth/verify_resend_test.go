@@ -12,7 +12,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestUseCaseResend(t *testing.T) {
+func TestUseCaseResendVerificationEmail(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -152,7 +152,7 @@ func TestUseCaseResend(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := tt.uc(ctrl)
-			err := u.Resend(tt.args.ctx, tt.args.email)
+			err := u.ResendVerificationEmail(tt.args.ctx, tt.args.email)
 			if tt.wantErr {
 				var e *customerrors.Err
 				if err == nil {
