@@ -1,21 +1,4 @@
 definitions:
-  customerrors.Err:
-    properties:
-      data:
-        items: {}
-        type: array
-      msg:
-        type: string
-      responseData:
-        additionalProperties: {}
-        type: object
-      source:
-        additionalProperties:
-          type: string
-        type: object
-      type:
-        type: integer
-    type: object
   request.EmailRequest:
     properties:
       email:
@@ -54,6 +37,14 @@ definitions:
     required:
     - token
     type: object
+  response.ErrAPI:
+    properties:
+      metadata:
+        additionalProperties: {}
+        type: object
+      msg:
+        type: string
+    type: object
 info:
   contact:
     email: musaev.ae@hiraise.net
@@ -77,7 +68,7 @@ paths:
         "401":
           description: authentication required
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
       security:
       - BearerAuth: []
       summary: check user authentication
@@ -102,15 +93,15 @@ paths:
         "400":
           description: invalid request body
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
         "401":
           description: invalid credentials
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
         "500":
           description: internal error
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
       summary: login user
       tags:
       - /v1/auth
@@ -126,7 +117,7 @@ paths:
         "401":
           description: authentication required
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
       security:
       - BearerAuth: []
       summary: logout user
@@ -151,7 +142,7 @@ paths:
         "400":
           description: invalid request body
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
       summary: send reset password email
       tags:
       - /v1/auth
@@ -174,7 +165,7 @@ paths:
         "400":
           description: invalid request body
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
       summary: reset user password
       tags:
       - /v1/auth
@@ -190,11 +181,11 @@ paths:
         "401":
           description: refresh token is invalid
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
         "500":
           description: internal error
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
       summary: refresh tokens pair
       tags:
       - /v1/auth
@@ -218,15 +209,15 @@ paths:
         "400":
           description: invalid request body
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
         "409":
           description: user already exists
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
         "500":
           description: internal error
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
       summary: register new user
       tags:
       - /v1/auth
@@ -249,7 +240,7 @@ paths:
         "400":
           description: invalid request body
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
       summary: resend account verification email
       tags:
       - /v1/auth
@@ -272,11 +263,11 @@ paths:
         "400":
           description: token is invalid
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
         "404":
           description: token or user not found
           schema:
-            $ref: '#/definitions/customerrors.Err'
+            $ref: '#/definitions/response.ErrAPI'
       summary: verify user account
       tags:
       - /v1/auth

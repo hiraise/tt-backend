@@ -50,9 +50,9 @@ func new(
 // @Produce 	json
 // @Param 		body body request.User true "user email and password"
 // @Success 	200
-// @Failure		400 {object} customerrors.Err "invalid request body"
-// @Failure		409 {object} customerrors.Err "user already exists"
-// @Failure		500 {object} customerrors.Err "internal error"
+// @Failure		400 {object} response.ErrAPI "invalid request body"
+// @Failure		409 {object} response.ErrAPI "user already exists"
+// @Failure		500 {object} response.ErrAPI "internal error"
 // @Router 		/v1/auth/register [post]
 func (r *authRoutes) register(c *gin.Context) {
 	var body request.User
@@ -74,9 +74,9 @@ func (r *authRoutes) register(c *gin.Context) {
 // @Produce 	json
 // @Param 		body body request.User true "user email and password"
 // @Success 	200
-// @Failure		400 {object} customerrors.Err "invalid request body"
-// @Failure		401 {object} customerrors.Err "invalid credentials"
-// @Failure		500 {object} customerrors.Err "internal error"
+// @Failure		400 {object} response.ErrAPI "invalid request body"
+// @Failure		401 {object} response.ErrAPI "invalid credentials"
+// @Failure		500 {object} response.ErrAPI "internal error"
 // @Router 		/v1/auth/login [post]
 func (r *authRoutes) login(c *gin.Context) {
 	var body request.User
@@ -100,8 +100,8 @@ func (r *authRoutes) login(c *gin.Context) {
 // @Accept 		json
 // @Produce 	json
 // @Success 	200
-// @Failure		401 {object} customerrors.Err "refresh token is invalid"
-// @Failure		500 {object} customerrors.Err "internal error"
+// @Failure		401 {object} response.ErrAPI "refresh token is invalid"
+// @Failure		500 {object} response.ErrAPI "internal error"
 // @Router 		/v1/auth/refresh [post]
 func (r *authRoutes) refresh(c *gin.Context) {
 	oldRT, err := c.Cookie(r.rtName)
@@ -127,7 +127,7 @@ func (r *authRoutes) refresh(c *gin.Context) {
 // @Accept 		json
 // @Produce 	json
 // @Success 	200
-// @Failure		401 {object} customerrors.Err "authentication required"
+// @Failure		401 {object} response.ErrAPI "authentication required"
 // @Router 		/v1/auth/logout [post]
 func (r *authRoutes) logout(c *gin.Context) {
 	r.contextmanager.DeleteTokens(c, r.atName, r.rtName, r.rtPath)
@@ -140,8 +140,8 @@ func (r *authRoutes) logout(c *gin.Context) {
 // @Produce 	json
 // @Param 		body body request.VerifyRequest true "token"
 // @Success 	200
-// @Failure		400 {object} customerrors.Err "token is invalid"
-// @Failure		404 {object} customerrors.Err "token or user not found"
+// @Failure		400 {object} response.ErrAPI "token is invalid"
+// @Failure		404 {object} response.ErrAPI "token or user not found"
 // @Router 		/v1/auth/verify [post]
 func (r *authRoutes) verify(c *gin.Context) {
 	var body request.VerifyRequest
@@ -162,7 +162,7 @@ func (r *authRoutes) verify(c *gin.Context) {
 // @Produce 	json
 // @Param 		body body request.EmailRequest true "user email"
 // @Success 	200
-// @Failure		400 {object} customerrors.Err "invalid request body"
+// @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Router 		/v1/auth/resend-verification [post]
 func (r *authRoutes) resend(c *gin.Context) {
 	var body request.EmailRequest
@@ -183,7 +183,7 @@ func (r *authRoutes) resend(c *gin.Context) {
 // @Produce 	json
 // @Param 		body body request.EmailRequest true "user email"
 // @Success 	200
-// @Failure		400 {object} customerrors.Err "invalid request body"
+// @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Router 		/v1/auth/password/forgot [post]
 func (r *authRoutes) forgotPWD(c *gin.Context) {
 	var body request.EmailRequest
@@ -204,7 +204,7 @@ func (r *authRoutes) forgotPWD(c *gin.Context) {
 // @Produce 	json
 // @Param 		body body request.ResetPasswordRequest true "user email"
 // @Success 	200
-// @Failure		400 {object} customerrors.Err "invalid request body"
+// @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Router 		/v1/auth/password/reset [post]
 func (r *authRoutes) resetPWD(c *gin.Context) {
 	var body request.ResetPasswordRequest
@@ -225,7 +225,7 @@ func (r *authRoutes) resetPWD(c *gin.Context) {
 // @Accept 		json
 // @Produce 	json
 // @Success 	200
-// @Failure		401 {object} customerrors.Err "authentication required"
+// @Failure		401 {object} response.ErrAPI "authentication required"
 // @Router 		/v1/auth/check [get]
 func (r *authRoutes) check(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
