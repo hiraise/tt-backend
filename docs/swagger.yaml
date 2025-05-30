@@ -151,7 +151,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: user email
+      - description: token and new password
         in: body
         name: body
         required: true

@@ -181,7 +181,7 @@ const docTemplate = `{
                 "summary": "reset user password",
                 "parameters": [
                     {
-                        "description": "user email",
+                        "description": "token and new password",
                         "name": "body",
                         "in": "body",
                         "required": true,
