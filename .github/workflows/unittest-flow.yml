@@ -40,6 +40,11 @@ jobs:
       FRONTEND_URL: "http://localhost:3000"
       FRONTEND_VERIFY_URL: "http://localhost:3000/verfiy"
       FRONTEND_RESET_PASSWORD_URL: "http://localhost:3000/reset"
+      S3_ENABLED: true
+      S3_ACCESS_KEY: "root"
+      S3_SECRET_KEY: "password"
+      S3_ENDPOINT: "http://localhost:9000"
+      S3_BUCKET: "data"
 
     runs-on: ubuntu-latest
     container: golang:1.24
