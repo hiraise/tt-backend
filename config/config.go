@@ -90,7 +90,7 @@ func New() (*Config, error) {
 			cfg.S3.UploadURL == "" ||
 			cfg.S3.PublicURL == "" ||
 			cfg.S3.Bucket == "" {
-			return nil, fmt.Errorf("all S3 fields (S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT, S3_BASE_URL, S3_BUCKET) must be set when S3 is enabled")
+			return nil, fmt.Errorf("all S3 fields (S3_ACCESS_KEY, S3_SECRET_KEY, S3_UPLOAD_URL, S3_PUBLIC_URL, S3_BUCKET) must be set when S3 is enabled")
 		}
 	}
 	return cfg, nil
