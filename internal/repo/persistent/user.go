@@ -56,11 +56,11 @@ func (r *PgUserRepository) GetByEmail(ctx context.Context, email string) (*entit
 }
 
 func (r *PgUserRepository) GetByID(ctx context.Context, ID int) (*entity.User, error) {
-	query := `SELECT id, email, password_hash, verified_at FROM users WHERE id = $1`
+	query := `SELECT id, email, password_hash, verified_at, username, avatar_id FROM users WHERE id = $1`
 	var user entity.User
 	if err := r.getDb(ctx).
 		QueryRow(ctx, query, ID).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.VerifiedAt); err != nil {
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.VerifiedAt, &user.Username, &user.AvatarID); err != nil {
 		return nil, r.handleError(err)
 	}
 	return &user, nil
@@ -75,6 +75,12 @@ func (r *PgUserRepository) Update(ctx context.Context, user *entity.User) error 
 	}
 	if user.VerifiedAt != nil {
 		kwargs["verified_at"] = user.VerifiedAt
+	}
+	if user.AvatarID != nil {
+		kwargs["avatar_id"] = user.AvatarID
+	}
+	if user.Username != nil {
+		kwargs["username"] = user.Username
 	}
 	if len(kwargs) == 0 {
 		return nil
