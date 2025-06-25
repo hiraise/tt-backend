@@ -55,7 +55,8 @@ type S3 struct {
 	Enabled   bool   `env:"S3_ENABLED" envDefault:"true"`
 	AccessKey string `env:"S3_ACCESS_KEY"`
 	SecretKey string `env:"S3_SECRET_KEY"`
-	Endpoint  string `env:"S3_ENDPOINT"`
+	UploadURL string `env:"S3_UPLOAD_URL"`
+	PublicURL string `env:"S3_PUBLIC_URL"`
 	Bucket    string `env:"S3_BUCKET"`
 }
 type Config struct {
@@ -86,9 +87,10 @@ func New() (*Config, error) {
 	if cfg.S3.Enabled {
 		if cfg.S3.AccessKey == "" ||
 			cfg.S3.SecretKey == "" ||
-			cfg.S3.Endpoint == "" ||
+			cfg.S3.UploadURL == "" ||
+			cfg.S3.PublicURL == "" ||
 			cfg.S3.Bucket == "" {
-			return nil, fmt.Errorf("all S3 fields (S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT, S3_BUCKET) must be set when S3 is enabled")
+			return nil, fmt.Errorf("all S3 fields (S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT, S3_BASE_URL, S3_BUCKET) must be set when S3 is enabled")
 		}
 	}
 	return cfg, nil

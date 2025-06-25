@@ -13,11 +13,12 @@ import (
 )
 
 type Service struct {
-	bucket string
-	client *s3.Client
+	bucket    string
+	publicURL string
+	client    *s3.Client
 }
 
-func New(accessKey, secretKey, endpoint, bucket string) (*Service, error) {
+func New(accessKey, secretKey, uploadURL, publicURL, bucket string) (*Service, error) {
 
 	cfg, err := config.LoadDefaultConfig(
 		context.TODO(),
@@ -34,10 +35,11 @@ func New(accessKey, secretKey, endpoint, bucket string) (*Service, error) {
 		return nil, fmt.Errorf("loading s3 configuration failed: %w", err)
 	}
 	retVal := &Service{
-		bucket: bucket,
+		bucket:    bucket,
+		publicURL: publicURL,
 	}
 	retVal.client = s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.BaseEndpoint = aws.String(endpoint)
+		o.BaseEndpoint = aws.String(uploadURL)
 		o.UsePathStyle = true
 	})
 	return retVal, nil
@@ -73,5 +75,5 @@ func (s *Service) Delete(ctx context.Context, name string) error {
 }
 
 func (s *Service) GetPath(name string) string {
-	return fmt.Sprintf("%s/%s/%s", *s.client.Options().BaseEndpoint, s.bucket, name)
+	return fmt.Sprintf("%s/%s/%s", s.publicURL, s.bucket, name)
 }
