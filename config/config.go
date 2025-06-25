@@ -50,6 +50,14 @@ type Frontend struct {
 	VerifyURL        string `env:"FRONTEND_VERIFY_URL,required"`
 	ResetPasswordURL string `env:"FRONTEND_RESET_PASSWORD_URL,required"`
 }
+
+type S3 struct {
+	Enabled   bool   `env:"S3_ENABLED" envDefault:"true"`
+	AccessKey string `env:"S3_ACCESS_KEY"`
+	SecretKey string `env:"S3_SECRET_KEY"`
+	Endpoint  string `env:"S3_ENDPOINT"`
+	Bucket    string `env:"S3_BUCKET"`
+}
 type Config struct {
 	App      AppConfig
 	PG       PGConfig
@@ -57,6 +65,7 @@ type Config struct {
 	Docs     Docs
 	SMTP     SMTP
 	Frontend Frontend
+	S3       S3
 }
 
 func New() (*Config, error) {
@@ -71,6 +80,15 @@ func New() (*Config, error) {
 	if cfg.PG.MigrationEnabled {
 		if cfg.PG.MigrationPath == "" {
 			return nil, fmt.Errorf("PG_MIGRATION_PATH required if PG_MIGRATION_ENABLED")
+		}
+	}
+
+	if cfg.S3.Enabled {
+		if cfg.S3.AccessKey == "" ||
+			cfg.S3.SecretKey == "" ||
+			cfg.S3.Endpoint == "" ||
+			cfg.S3.Bucket == "" {
+			return nil, fmt.Errorf("all S3 fields (S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT, S3_BUCKET) must be set when S3 is enabled")
 		}
 	}
 	return cfg, nil
