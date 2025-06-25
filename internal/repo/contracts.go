@@ -50,3 +50,7 @@ type NotificationRepository interface {
 	SendVerificationEmail(ctx context.Context, email string, token string) error
 	SendResetPasswordEmail(ctx context.Context, email string, token string) error
 }
+
+type FileRepository interface {
+	Create(ctx context.Context, file *entity.File) error
+}
