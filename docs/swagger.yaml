@@ -18,6 +18,12 @@ definitions:
     - password
     - token
     type: object
+  request.UpdateUser:
+    properties:
+      username:
+        maxLength: 100
+        type: string
+    type: object
   request.User:
     properties:
       email:
@@ -290,6 +296,79 @@ paths:
       security:
       - BearerAuth: []
       summary: return user by id
+      tags:
+      - /v1/users
+  /v1/users/me:
+    get:
+      consumes:
+      - application/json
+      description: '...'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - BearerAuth: []
+      summary: return current user
+      tags:
+      - /v1/users
+    patch:
+      consumes:
+      - application/json
+      description: '...'
+      parameters:
+      - description: user data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: invalid request body
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      security:
+      - BearerAuth: []
+      summary: update current user
+      tags:
+      - /v1/users
+  /v1/users/me/avatar:
+    patch:
+      consumes:
+      - application/json
+      description: '...'
+      parameters:
+      - description: new file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      security:
+      - BearerAuth: []
+      summary: upload new avatar
       tags:
       - /v1/users
 securityDefinitions:
