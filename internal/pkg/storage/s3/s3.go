@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"task-trail/internal/pkg/logger"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -18,7 +17,7 @@ type Service struct {
 	client *s3.Client
 }
 
-func New(accessKey, secretKey, endpoint, bucket string, l logger.Logger) *Service {
+func New(accessKey, secretKey, endpoint, bucket string) (*Service, error) {
 
 	cfg, err := config.LoadDefaultConfig(
 		context.TODO(),
@@ -32,7 +31,7 @@ func New(accessKey, secretKey, endpoint, bucket string, l logger.Logger) *Servic
 		config.WithRegion("us-east-1"),
 	)
 	if err != nil {
-		l.Error("loading s3 configuration failed", "error", err)
+		return nil, fmt.Errorf("loading s3 configuration failed: %w", err)
 	}
 	retVal := &Service{
 		bucket: bucket,
@@ -41,7 +40,7 @@ func New(accessKey, secretKey, endpoint, bucket string, l logger.Logger) *Servic
 		o.BaseEndpoint = aws.String(endpoint)
 		o.UsePathStyle = true
 	})
-	return retVal
+	return retVal, nil
 }
 
 func (s *Service) Save(ctx context.Context, file []byte, name string, mimeType string) error {
