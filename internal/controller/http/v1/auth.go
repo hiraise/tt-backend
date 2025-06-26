@@ -55,7 +55,7 @@ func new(
 // @Failure		500 {object} response.ErrAPI "internal error"
 // @Router 		/v1/auth/register [post]
 func (r *authRoutes) register(c *gin.Context) {
-	var body request.User
+	var body request.AuthReq
 	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
 		_ = c.Error(r.errHandler.Validation(err))
 		return
@@ -79,7 +79,7 @@ func (r *authRoutes) register(c *gin.Context) {
 // @Failure		500 {object} response.ErrAPI "internal error"
 // @Router 		/v1/auth/login [post]
 func (r *authRoutes) login(c *gin.Context) {
-	var body request.User
+	var body request.AuthReq
 	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
 		_ = c.Error(r.errHandler.Validation(err))
 		return
@@ -144,7 +144,7 @@ func (r *authRoutes) logout(c *gin.Context) {
 // @Failure		404 {object} response.ErrAPI "token or user not found"
 // @Router 		/v1/auth/verify [post]
 func (r *authRoutes) verify(c *gin.Context) {
-	var body request.VerifyRequest
+	var body request.VerifyReq
 	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
 		_ = c.Error(r.errHandler.Validation(err))
 		return
@@ -165,7 +165,7 @@ func (r *authRoutes) verify(c *gin.Context) {
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Router 		/v1/auth/resend-verification [post]
 func (r *authRoutes) resend(c *gin.Context) {
-	var body request.EmailRequest
+	var body request.EmailReq
 	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
 		_ = c.Error(r.errHandler.Validation(err))
 		return
@@ -186,7 +186,7 @@ func (r *authRoutes) resend(c *gin.Context) {
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Router 		/v1/auth/password/forgot [post]
 func (r *authRoutes) forgotPWD(c *gin.Context) {
-	var body request.EmailRequest
+	var body request.EmailReq
 	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
 		_ = c.Error(r.errHandler.Validation(err))
 		return
@@ -207,7 +207,7 @@ func (r *authRoutes) forgotPWD(c *gin.Context) {
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Router 		/v1/auth/password/reset [post]
 func (r *authRoutes) resetPWD(c *gin.Context) {
-	var body request.ResetPasswordRequest
+	var body request.ResetPasswordReq
 	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
 		_ = c.Error(r.errHandler.Validation(err))
 		return

@@ -11,6 +11,12 @@ import (
 	"task-trail/internal/usecase/file"
 )
 
+var avatarAllowedMimeTypes = map[string]bool{
+	"image/jpeg": true,
+	"image/png":  true,
+	"image/webp": true,
+}
+
 type UseCase struct {
 	txManager   repo.TxManager
 	userRepo    repo.UserRepository
@@ -45,6 +51,9 @@ func (u *UseCase) UpdateAvatar(
 	filename string,
 	mimeType string,
 ) (string, error) {
+	if !avatarAllowedMimeTypes[mimeType] {
+		return "", u.errHandler.BadRequest(nil, "invalid mime type", "mimeType", mimeType)
+	}
 	var avatarID string
 	var err error
 	fn := func(ctx context.Context) error {

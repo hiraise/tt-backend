@@ -1,11 +1,7 @@
 package v1
 
 import (
-	"bytes"
-	"fmt"
-	"io"
 	"net/http"
-	"path/filepath"
 	"task-trail/internal/controller/http/v1/request"
 	"task-trail/internal/controller/http/v1/response"
 	"task-trail/internal/customerrors"
@@ -15,12 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-var allowedMimeTypes = map[string]bool{
-	"image/jpeg": true,
-	"image/png":  true,
-	"image/webp": true,
-}
 
 type usersRoutes struct {
 	contextmanager contextmanager.Gin
@@ -52,13 +42,14 @@ func (r *usersRoutes) getUser(c *gin.Context) {
 // @Success 	200
 // @Router 		/v1/users/me [get]
 func (r *usersRoutes) getMe(c *gin.Context) {
-	userID := r.contextmanager.GetUserID(c).(int)
+	userID := r.contextmanager.GetUserID(c)
+
 	u, err := r.u.GetByID(c, userID)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, response.NewCurrentUser(u, r.storage))
+	c.JSON(http.StatusOK, response.UserToAPI(u, r.storage))
 }
 
 // @Summary 	upload new avatar
@@ -72,39 +63,28 @@ func (r *usersRoutes) getMe(c *gin.Context) {
 // @Failure		401 {object} response.ErrAPI "authentication required"
 // @Router 		/v1/users/me/avatar [patch]
 func (r *usersRoutes) updateAvatar(c *gin.Context) {
+	// extract file
 	file, err := c.FormFile("file")
 	if err != nil {
 		_ = c.Error(r.errHandler.Validation(err))
 		return
 	}
-	mimeType := file.Header.Get("Content-Type")
-	if !allowedMimeTypes[mimeType] {
-		_ = c.Error(r.errHandler.Validation(fmt.Errorf("invalid mime type: %s", mimeType)))
-		return
-	}
-	filename := filepath.Base(file.Filename)
-	buf := bytes.NewBuffer(nil)
-	f, err := file.Open()
+	// map file to FileReq
+	f, err := request.FileFromAPI(file)
 	if err != nil {
-		_ = c.Error(r.errHandler.Validation(fmt.Errorf("cant read file: %w", err)))
-		return
-	}
-	defer f.Close()
-
-	if _, err = io.Copy(buf, f); err != nil {
-		_ = c.Error(r.errHandler.InternalTrouble(err, "cant copy file"))
+		_ = c.Error(r.errHandler.InternalTrouble(err, "file mapping failure"))
 		return
 	}
 
-	userID := r.contextmanager.GetUserID(c).(int)
+	userID := r.contextmanager.GetUserID(c)
 
-	avatarID, err := r.u.UpdateAvatar(c, userID, buf.Bytes(), filename, mimeType)
+	avatarID, err := r.u.UpdateAvatar(c, userID, f.Body, f.Name, f.MimeType)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
 
-	c.JSON(http.StatusOK, response.NewUserAvatar(avatarID, r.storage))
+	c.JSON(http.StatusOK, response.AvatarToAPI(avatarID, r.storage))
 
 }
 
@@ -121,19 +101,22 @@ func (r *usersRoutes) updateAvatar(c *gin.Context) {
 // @Failure		401 {object} response.ErrAPI "authentication required"
 // @Router 		/v1/users/me [patch]
 func (r *usersRoutes) updateMe(c *gin.Context) {
-	var body request.UpdateUser
+	// parse body
+	var body request.UpdateReq
 	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
 		_ = c.Error(r.errHandler.Validation(err))
 		return
 	}
-	data := body.FromUpdateUser()
-	data.ID = r.contextmanager.GetUserID(c).(int)
+	// cast parsed body to entity
+	data := body.ToEntity()
+	data.ID = r.contextmanager.GetUserID(c)
+
 	u, err := r.u.UpdateByID(c, data)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, response.NewCurrentUser(u, r.storage))
+	c.JSON(http.StatusOK, response.UserToAPI(u, r.storage))
 }
 func NewUserRouter(
 	router *gin.RouterGroup,

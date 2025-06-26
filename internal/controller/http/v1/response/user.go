@@ -5,28 +5,28 @@ import (
 	"task-trail/internal/pkg/storage"
 )
 
-type UserAvatar struct {
+type AvatarRes struct {
 	AvatarUrl string `json:"avatarUrl"`
 }
 
-func NewUserAvatar(id string, service storage.Service) *UserAvatar {
-	return &UserAvatar{AvatarUrl: service.GetPath(id)}
+func AvatarToAPI(id string, service storage.Service) *AvatarRes {
+	return &AvatarRes{AvatarUrl: service.GetPath(id)}
 }
 
-type CurrentUser struct {
+type UserRes struct {
 	ID        int     `json:"id"`
 	Username  *string `json:"username"`
 	Email     string  `json:"email"`
 	AvatarUrl *string `json:"avatarUrl"`
 }
 
-func NewCurrentUser(u *entity.User, service storage.Service) *CurrentUser {
+func UserToAPI(u *entity.User, service storage.Service) *UserRes {
 	var avatarUrl *string
 	if u.AvatarID != nil {
 		url := service.GetPath(*u.AvatarID)
 		avatarUrl = &url
 	}
-	return &CurrentUser{
+	return &UserRes{
 		ID:        u.ID,
 		Username:  u.Username,
 		Email:     u.Email,
