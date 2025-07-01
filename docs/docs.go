@@ -72,7 +72,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.User"
+                            "$ref": "#/definitions/request.AuthReq"
                         }
                     }
                 ],
@@ -131,6 +131,42 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/auth/password/change": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/v1/auth"
+                ],
+                "summary": "change user password",
+                "parameters": [
+                    {
+                        "description": "old and new password",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ChangePasswordReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrAPI"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/auth/password/forgot": {
             "post": {
                 "consumes": [
@@ -150,7 +186,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.EmailRequest"
+                            "$ref": "#/definitions/request.EmailReq"
                         }
                     }
                 ],
@@ -186,7 +222,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.ResetPasswordRequest"
+                            "$ref": "#/definitions/request.ResetPasswordReq"
                         }
                     }
                 ],
@@ -254,7 +290,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.User"
+                            "$ref": "#/definitions/request.AuthReq"
                         }
                     }
                 ],
@@ -302,7 +338,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.EmailRequest"
+                            "$ref": "#/definitions/request.EmailReq"
                         }
                     }
                 ],
@@ -338,7 +374,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.VerifyRequest"
+                            "$ref": "#/definitions/request.VerifyReq"
                         }
                     }
                 ],
@@ -354,6 +390,123 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "token or user not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrAPI"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "...",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/v1/users"
+                ],
+                "summary": "return current user",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "...",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/v1/users"
+                ],
+                "summary": "update current user",
+                "parameters": [
+                    {
+                        "description": "user data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrAPI"
+                        }
+                    },
+                    "401": {
+                        "description": "authentication required",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrAPI"
+                        }
+                    },
+                    "404": {
+                        "description": "user not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrAPI"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/me/avatar": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "...",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/v1/users"
+                ],
+                "summary": "upload new avatar",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "new file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "authentication required",
                         "schema": {
                             "$ref": "#/definitions/response.ErrAPI"
                         }
@@ -397,35 +550,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "request.EmailRequest": {
-            "type": "object",
-            "required": [
-                "email"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.ResetPasswordRequest": {
-            "type": "object",
-            "required": [
-                "password",
-                "token"
-            ],
-            "properties": {
-                "password": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 8
-                },
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.User": {
+        "request.AuthReq": {
             "type": "object",
             "required": [
                 "email",
@@ -442,7 +567,63 @@ const docTemplate = `{
                 }
             }
         },
-        "request.VerifyRequest": {
+        "request.ChangePasswordReq": {
+            "type": "object",
+            "required": [
+                "newPassword",
+                "oldPassword"
+            ],
+            "properties": {
+                "newPassword": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 8
+                },
+                "oldPassword": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 8
+                }
+            }
+        },
+        "request.EmailReq": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.ResetPasswordReq": {
+            "type": "object",
+            "required": [
+                "password",
+                "token"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 8
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateReq": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
+        "request.VerifyReq": {
             "type": "object",
             "required": [
                 "token"
