@@ -48,7 +48,7 @@ func new(
 // @Tags 		/v1/auth
 // @Accept 		json
 // @Produce 	json
-// @Param 		body body request.User true "user email and password"
+// @Param 		body body request.AuthReq true "user email and password"
 // @Success 	200
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Failure		409 {object} response.ErrAPI "user already exists"
@@ -72,7 +72,7 @@ func (r *authRoutes) register(c *gin.Context) {
 // @Tags 		/v1/auth
 // @Accept 		json
 // @Produce 	json
-// @Param 		body body request.User true "user email and password"
+// @Param 		body body request.AuthReq true "user email and password"
 // @Success 	200
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Failure		401 {object} response.ErrAPI "invalid credentials"
@@ -138,7 +138,7 @@ func (r *authRoutes) logout(c *gin.Context) {
 // @Tags 		/v1/auth
 // @Accept 		json
 // @Produce 	json
-// @Param 		body body request.VerifyRequest true "token"
+// @Param 		body body request.VerifyReq true "token"
 // @Success 	200
 // @Failure		400 {object} response.ErrAPI "token is invalid"
 // @Failure		404 {object} response.ErrAPI "token or user not found"
@@ -160,7 +160,7 @@ func (r *authRoutes) verify(c *gin.Context) {
 // @Tags 		/v1/auth
 // @Accept 		json
 // @Produce 	json
-// @Param 		body body request.EmailRequest true "user email"
+// @Param 		body body request.EmailReq true "user email"
 // @Success 	200
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Router 		/v1/auth/resend-verification [post]
@@ -181,7 +181,7 @@ func (r *authRoutes) resend(c *gin.Context) {
 // @Tags 		/v1/auth
 // @Accept 		json
 // @Produce 	json
-// @Param 		body body request.EmailRequest true "user email"
+// @Param 		body body request.EmailReq true "user email"
 // @Success 	200
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Router 		/v1/auth/password/forgot [post]
@@ -202,7 +202,7 @@ func (r *authRoutes) forgotPWD(c *gin.Context) {
 // @Tags 		/v1/auth
 // @Accept 		json
 // @Produce 	json
-// @Param 		body body request.ResetPasswordRequest true "token and new password"
+// @Param 		body body request.ResetPasswordReq true "token and new password"
 // @Success 	200
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Router 		/v1/auth/password/reset [post]
@@ -213,6 +213,32 @@ func (r *authRoutes) resetPWD(c *gin.Context) {
 		return
 	}
 	if err := r.u.ResetPassword(c, body.Token, body.Password); err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, nil)
+}
+
+// @Summary 	change user password
+// @Tags 		/v1/auth
+// @Accept 		json
+// @Produce 	json
+// @Param 		body body request.ChangePasswordReq true "old and new password"
+// @Success 	200
+// @Failure		400 {object} response.ErrAPI "invalid request body"
+// @Router 		/v1/auth/password/change [post]
+func (r *authRoutes) changePWD(c *gin.Context) {
+	var body request.ChangePasswordReq
+	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
+		_ = c.Error(r.errHandler.Validation(err))
+		return
+	}
+	userID, err := r.contextmanager.GetUserID(c)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+	if err := r.u.ChangePassword(c, body.ToDTO(userID)); err != nil {
 		_ = c.Error(err)
 		return
 	}
@@ -248,6 +274,7 @@ func NewAuthRouter(
 	g.POST("/resend-verification", r.resend)
 	g.POST("/password/forgot", r.forgotPWD)
 	g.POST("/password/reset", r.resetPWD)
+	g.POST("/password/change", authMW, r.changePWD)
 	g.POST("/verify", r.verify)
 	g.GET("/check", authMW, r.check)
 }

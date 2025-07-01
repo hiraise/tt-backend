@@ -1,6 +1,7 @@
 package contextmanager
 
 import (
+	"fmt"
 	"net/http"
 	"task-trail/internal/pkg/token"
 	"task-trail/internal/pkg/uuid"
@@ -14,7 +15,7 @@ type Gin interface {
 	DeleteTokens(c *gin.Context, atName string, rtName string, refreshPath string)
 	SetTokens(c *gin.Context, at *token.Token, rt *token.Token, atName string, rtName string, refreshPath string)
 	SetUserID(c *gin.Context, userID int)
-	GetUserID(c *gin.Context) int
+	GetUserID(c *gin.Context) (int, error)
 	SetRequestID(c *gin.Context)
 	GetRequestID(c *gin.Context) string
 }
@@ -50,9 +51,14 @@ func (m *GinContextManager) SetUserID(c *gin.Context, userID int) {
 	c.Set("userID", userID)
 }
 
-func (m *GinContextManager) GetUserID(c *gin.Context) int {
-	return c.Keys["userID"].(int)
-
+func (m *GinContextManager) GetUserID(c *gin.Context) (int, error) {
+	id, ok := c.Keys["userID"]
+	if ok {
+		if userID, ok := id.(int); ok {
+			return userID, nil
+		}
+	}
+	return 0, fmt.Errorf("user id not found in request")
 }
 
 func (m *GinContextManager) SetRequestID(c *gin.Context) {

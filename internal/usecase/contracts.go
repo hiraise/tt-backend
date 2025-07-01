@@ -4,6 +4,7 @@ import (
 	"context"
 	"task-trail/internal/entity"
 	"task-trail/internal/pkg/token"
+	"task-trail/internal/usecase/dto"
 )
 
 // Authentication defines the contract for user authentication and authorization use cases.
@@ -21,6 +22,7 @@ type Authentication interface {
 	ResendVerificationEmail(ctx context.Context, email string) error
 	SendPasswordResetEmail(ctx context.Context, email string) error
 	ResetPassword(ctx context.Context, email string, password string) error
+	ChangePassword(ctx context.Context, dto dto.ChangePasswordDTO) error
 }
 
 // User defines the contract for user-related operations in the application.

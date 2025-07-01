@@ -1,6 +1,9 @@
 package request
 
-import "task-trail/internal/entity"
+import (
+	"task-trail/internal/entity"
+	"task-trail/internal/usecase/dto"
+)
 
 // AuthReq represents the request payload for user authentication.
 // It contains the user's email and password, both of which are required.
@@ -23,6 +26,15 @@ type EmailReq struct {
 type ResetPasswordReq struct {
 	Token    string `json:"token" binding:"required,uuid"`
 	Password string `json:"password" binding:"required,min=8,max=50"`
+}
+
+type ChangePasswordReq struct {
+	OldPassword string `json:"oldPassword" binding:"required,min=8,max=50"`
+	NewPassword string `json:"newPassword" binding:"required,min=8,max=50"`
+}
+
+func (r *ChangePasswordReq) ToDTO(userID int) dto.ChangePasswordDTO {
+	return dto.ChangePasswordDTO{UserID: userID, OldPassword: r.OldPassword, NewPassword: r.NewPassword}
 }
 
 // UpdateReq represents the request payload for updating a user's information.

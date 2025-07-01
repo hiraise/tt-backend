@@ -72,7 +72,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.User"
+                            "$ref": "#/definitions/request.AuthReq"
                         }
                     }
                 ],
@@ -131,6 +131,42 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/auth/password/change": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/v1/auth"
+                ],
+                "summary": "change user password",
+                "parameters": [
+                    {
+                        "description": "old and new password",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ChangePasswordReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrAPI"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/auth/password/forgot": {
             "post": {
                 "consumes": [
@@ -150,7 +186,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.EmailRequest"
+                            "$ref": "#/definitions/request.EmailReq"
                         }
                     }
                 ],
@@ -186,7 +222,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.ResetPasswordRequest"
+                            "$ref": "#/definitions/request.ResetPasswordReq"
                         }
                     }
                 ],
@@ -254,7 +290,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.User"
+                            "$ref": "#/definitions/request.AuthReq"
                         }
                     }
                 ],
@@ -302,7 +338,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.EmailRequest"
+                            "$ref": "#/definitions/request.EmailReq"
                         }
                     }
                 ],
@@ -338,7 +374,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.VerifyRequest"
+                            "$ref": "#/definitions/request.VerifyReq"
                         }
                     }
                 ],
@@ -409,7 +445,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UpdateUser"
+                            "$ref": "#/definitions/request.UpdateReq"
                         }
                     }
                 ],
@@ -514,44 +550,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "request.EmailRequest": {
-            "type": "object",
-            "required": [
-                "email"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.ResetPasswordRequest": {
-            "type": "object",
-            "required": [
-                "password",
-                "token"
-            ],
-            "properties": {
-                "password": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 8
-                },
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.UpdateUser": {
-            "type": "object",
-            "properties": {
-                "username": {
-                    "type": "string",
-                    "maxLength": 100
-                }
-            }
-        },
-        "request.User": {
+        "request.AuthReq": {
             "type": "object",
             "required": [
                 "email",
@@ -568,7 +567,63 @@ const docTemplate = `{
                 }
             }
         },
-        "request.VerifyRequest": {
+        "request.ChangePasswordReq": {
+            "type": "object",
+            "required": [
+                "newPassword",
+                "oldPassword"
+            ],
+            "properties": {
+                "newPassword": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 8
+                },
+                "oldPassword": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 8
+                }
+            }
+        },
+        "request.EmailReq": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.ResetPasswordReq": {
+            "type": "object",
+            "required": [
+                "password",
+                "token"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 8
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateReq": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
+        "request.VerifyReq": {
             "type": "object",
             "required": [
                 "token"

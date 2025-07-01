@@ -42,7 +42,11 @@ func (r *usersRoutes) getUser(c *gin.Context) {
 // @Success 	200
 // @Router 		/v1/users/me [get]
 func (r *usersRoutes) getMe(c *gin.Context) {
-	userID := r.contextmanager.GetUserID(c)
+	userID, err := r.contextmanager.GetUserID(c)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
 
 	u, err := r.u.GetByID(c, userID)
 	if err != nil {
@@ -76,7 +80,11 @@ func (r *usersRoutes) updateAvatar(c *gin.Context) {
 		return
 	}
 
-	userID := r.contextmanager.GetUserID(c)
+	userID, err := r.contextmanager.GetUserID(c)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
 
 	avatarID, err := r.u.UpdateAvatar(c, userID, f.Body, f.Name, f.MimeType)
 	if err != nil {
@@ -94,7 +102,7 @@ func (r *usersRoutes) updateAvatar(c *gin.Context) {
 // @Tags 		/v1/users
 // @Accept 		json
 // @Produce 	json
-// @Param 		body body request.UpdateUser true "user data"
+// @Param 		body body request.UpdateReq true "user data"
 // @Success 	200
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Failure		404 {object} response.ErrAPI "user not found"
@@ -109,7 +117,12 @@ func (r *usersRoutes) updateMe(c *gin.Context) {
 	}
 	// cast parsed body to entity
 	data := body.ToEntity()
-	data.ID = r.contextmanager.GetUserID(c)
+	userID, err := r.contextmanager.GetUserID(c)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+	data.ID = userID
 
 	u, err := r.u.UpdateByID(c, data)
 	if err != nil {
