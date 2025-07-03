@@ -10,6 +10,7 @@ import (
 	"task-trail/internal/pkg/token"
 	"task-trail/internal/pkg/uuid"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/dto"
 	"time"
 )
 
@@ -90,7 +91,7 @@ func (u *UseCase) revokeRT(ctx context.Context, tokenID string, userID int) erro
 	return nil
 }
 
-func (u *UseCase) generateAuthTokens(userID int) (*token.Token, *token.Token, error) {
+func (u *UseCase) generateAuthTokens(userID int) (*dto.AccessToken, *dto.RefreshToken, error) {
 	at, err := u.tokenSvc.GenAccessToken(userID)
 	if err != nil {
 		return nil, nil, u.errHandler.InternalTrouble(err, "generation access token failed", "userID", userID)
@@ -149,17 +150,17 @@ func (u *UseCase) getEmailToken(ctx context.Context, tokenID string) (*entity.Em
 
 }
 
-func (u *UseCase) updateUser(ctx context.Context, user *entity.User) error {
-	if err := u.userRepo.Update(ctx, user); err != nil {
+func (u *UseCase) updateUser(ctx context.Context, dto *dto.UserUpdate) error {
+	if err := u.userRepo.Update(ctx, dto); err != nil {
 		if errors.Is(err, repo.ErrNotFound) {
-			return u.errHandler.BadRequest(err, "user not found", "userID", user.ID)
+			return u.errHandler.BadRequest(err, "user not found", "userID", dto.ID)
 		}
-		return u.errHandler.InternalTrouble(err, "user update failed", "userID", user.ID)
+		return u.errHandler.InternalTrouble(err, "user update failed", "userID", dto.ID)
 	}
 	return nil
 }
 
-func (u *UseCase) getUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (u *UseCase) getUserByEmail(ctx context.Context, email string) (*dto.User, error) {
 	user, err := u.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, repo.ErrNotFound) {

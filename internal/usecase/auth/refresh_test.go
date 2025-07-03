@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"task-trail/internal/customerrors"
 	"task-trail/internal/entity"
-	"task-trail/internal/pkg/token"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/dto"
 	"testing"
 	"time"
 
@@ -33,22 +33,24 @@ func TestUseCaseRefresh(t *testing.T) {
 		ctx:   ctx,
 		oldRT: "123",
 	}
-	newAT := &token.Token{
+	newAT := &dto.AccessToken{
+		Token: "123",
+		Exp:   time.Now(),
+	}
+	newRT := &dto.RefreshToken{
 		Token: "123",
 		Jti:   "123",
 		Exp:   time.Now(),
 	}
-	newRT := &token.Token{
-		Token: "123",
-		Jti:   "123",
-		Exp:   time.Now(),
+	w := &dto.RefreshRes{
+		AT: newAT,
+		RT: newRT,
 	}
 	tests := []struct {
 		name        string
 		uc          func(ctrl *gomock.Controller) *UseCase
 		args        args
-		want        *token.Token
-		want1       *token.Token
+		want        *dto.RefreshRes
 		wantErr     bool
 		wantErrType customerrors.ErrType
 		wantErrMsg  string
@@ -68,8 +70,7 @@ func TestUseCaseRefresh(t *testing.T) {
 				return uc
 			},
 			wantErr: false,
-			want:    newAT,
-			want1:   newRT,
+			want:    w,
 		},
 		{
 			name: "invalid refresh token",
@@ -267,7 +268,7 @@ func TestUseCaseRefresh(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := tt.uc(ctrl)
-			got, got1, err := u.Refresh(tt.args.ctx, tt.args.oldRT)
+			got, err := u.Refresh(tt.args.ctx, tt.args.oldRT)
 			if tt.wantErr {
 				var e *customerrors.Err
 				if err == nil {
@@ -290,10 +291,7 @@ func TestUseCaseRefresh(t *testing.T) {
 				}
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("at got = %v, want %v", got, tt.want)
-			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("rt got = %v, want %v", got1, tt.want1)
+				t.Errorf("got = %v, want %v", got, tt.want)
 			}
 		})
 	}

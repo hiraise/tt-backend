@@ -8,6 +8,7 @@ import (
 	"task-trail/internal/pkg/storage"
 	"task-trail/internal/pkg/uuid"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/dto"
 )
 
 type UseCase struct {
@@ -36,18 +37,15 @@ func New(
 
 func (u *UseCase) Save(
 	ctx context.Context,
-	ownerID int,
-	file []byte,
-	filename string,
-	mimeType string,
+	data *dto.UploadFile,
 ) (string, error) {
 	name := u.uuidGen.Generate()
 	// register in db
 	f := &entity.File{
 		ID:           name,
-		OriginalName: filename,
-		MimeType:     mimeType,
-		OwnerID:      ownerID,
+		OriginalName: data.File.Name,
+		MimeType:     data.File.MimeType,
+		OwnerID:      data.UserID,
 	}
 	err := u.fileRepo.Create(ctx, f)
 	if err != nil {
@@ -59,8 +57,10 @@ func (u *UseCase) Save(
 		}
 		return "", u.errHandler.InternalTrouble(err, "failed to upload file")
 	}
+	// change filename for saving in storage as unique name
+	data.File.Name = name
 	// save in storage
-	if err := u.storage.Save(ctx, file, name, mimeType); err != nil {
+	if err := u.storage.Save(ctx, data.File); err != nil {
 		return "", u.errHandler.InternalTrouble(err, "file storing failure")
 	}
 	return name, nil

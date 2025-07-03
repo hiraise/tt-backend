@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"task-trail/internal/customerrors"
-	"task-trail/internal/entity"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/dto"
 	"testing"
 	"time"
 
@@ -42,7 +42,7 @@ func TestUseCaseSendPasswordResetEmail(t *testing.T) {
 				uc, deps := mockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.uuid.EXPECT().Generate().Return(gomock.Any().String())
-				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&entity.User{ID: 1, Email: testEmail, VerifiedAt: &now}, nil)
+				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&dto.User{ID: 1, Email: testEmail, VerifiedAt: &now}, nil)
 				deps.etRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 				deps.notificationRepo.EXPECT().SendResetPasswordEmail(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				return uc
@@ -94,7 +94,7 @@ func TestUseCaseSendPasswordResetEmail(t *testing.T) {
 			uc: func(ctrl *gomock.Controller) *UseCase {
 				uc, deps := mockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
-				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&entity.User{ID: 1, Email: testEmail}, nil)
+				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&dto.User{ID: 1, Email: testEmail}, nil)
 				return uc
 			},
 			wantErr:     true,
@@ -108,7 +108,7 @@ func TestUseCaseSendPasswordResetEmail(t *testing.T) {
 				uc, deps := mockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.uuid.EXPECT().Generate().Return(gomock.Any().String())
-				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&entity.User{ID: 1, Email: testEmail, VerifiedAt: &now}, nil)
+				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&dto.User{ID: 1, Email: testEmail, VerifiedAt: &now}, nil)
 				deps.etRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(repo.ErrNotFound)
 				return uc
 			},
@@ -123,7 +123,7 @@ func TestUseCaseSendPasswordResetEmail(t *testing.T) {
 				uc, deps := mockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.uuid.EXPECT().Generate().Return(gomock.Any().String())
-				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&entity.User{ID: 1, Email: testEmail, VerifiedAt: &now}, nil)
+				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&dto.User{ID: 1, Email: testEmail, VerifiedAt: &now}, nil)
 				deps.etRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(repo.ErrInternal)
 				return uc
 			},
@@ -138,7 +138,7 @@ func TestUseCaseSendPasswordResetEmail(t *testing.T) {
 				uc, deps := mockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.uuid.EXPECT().Generate().Return(gomock.Any().String())
-				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&entity.User{ID: 1, Email: testEmail, VerifiedAt: &now}, nil)
+				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&dto.User{ID: 1, Email: testEmail, VerifiedAt: &now}, nil)
 				deps.etRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(repo.ErrConflict)
 				return uc
 			},
@@ -153,7 +153,7 @@ func TestUseCaseSendPasswordResetEmail(t *testing.T) {
 				uc, deps := mockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.uuid.EXPECT().Generate().Return(gomock.Any().String())
-				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&entity.User{ID: 1, Email: testEmail, VerifiedAt: &now}, nil)
+				deps.userRepo.EXPECT().GetByEmail(gomock.Any(), gomock.Any()).Return(&dto.User{ID: 1, Email: testEmail, VerifiedAt: &now}, nil)
 				deps.etRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 				deps.notificationRepo.EXPECT().SendResetPasswordEmail(gomock.Any(), testEmail, gomock.Any()).Return(fmt.Errorf("failed send notification"))
 				return uc

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"task-trail/internal/usecase/dto"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -45,13 +46,13 @@ func New(accessKey, secretKey, uploadURL, publicURL, bucket string) (*Service, e
 	return retVal, nil
 }
 
-func (s *Service) Save(ctx context.Context, file []byte, name string, mimeType string) error {
+func (s *Service) Save(ctx context.Context, dto *dto.File) error {
 
 	_, err := s.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(s.bucket),
-		Key:         aws.String(name),
-		Body:        bytes.NewReader(file),
-		ContentType: aws.String(mimeType),
+		Key:         aws.String(dto.Name),
+		Body:        bytes.NewReader(dto.Data),
+		ContentType: aws.String(dto.MimeType),
 		ACL:         types.ObjectCannedACLPublicRead,
 	})
 	if err != nil {

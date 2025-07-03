@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"task-trail/internal/customerrors"
-	"task-trail/internal/entity"
 	"task-trail/internal/pkg/password"
+	"task-trail/internal/pkg/storage"
 	"task-trail/internal/pkg/uuid"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/dto"
 	"task-trail/internal/usecase/file"
 )
 
@@ -21,6 +22,7 @@ type UseCase struct {
 	txManager   repo.TxManager
 	userRepo    repo.UserRepository
 	fileUseCase *file.UseCase
+	storage     storage.Service
 	pwdService  password.Service
 	errHandler  customerrors.ErrorHandler
 	uuidGen     uuid.Generator
@@ -30,6 +32,7 @@ func New(
 	txManager repo.TxManager,
 	repo repo.UserRepository,
 	fileUseCase *file.UseCase,
+	storage storage.Service,
 	pwdService password.Service,
 	errHandler customerrors.ErrorHandler,
 	uuidGen uuid.Generator,
@@ -38,6 +41,7 @@ func New(
 		txManager:   txManager,
 		userRepo:    repo,
 		fileUseCase: fileUseCase,
+		storage:     storage,
 		pwdService:  pwdService,
 		errHandler:  errHandler,
 		uuidGen:     uuidGen,
@@ -46,28 +50,25 @@ func New(
 
 func (u *UseCase) UpdateAvatar(
 	ctx context.Context,
-	userID int,
-	file []byte,
-	filename string,
-	mimeType string,
+	data *dto.UploadFile,
 ) (string, error) {
-	if !avatarAllowedMimeTypes[mimeType] {
-		return "", u.errHandler.BadRequest(nil, "invalid mime type", "mimeType", mimeType)
+	if !avatarAllowedMimeTypes[data.File.MimeType] {
+		return "", u.errHandler.BadRequest(nil, "invalid mime type", "mimeType", data.File.MimeType)
 	}
 	var avatarID string
 	var err error
 	fn := func(ctx context.Context) error {
-		avatarID, err = u.fileUseCase.Save(ctx, userID, file, filename, mimeType)
+		avatarID, err = u.fileUseCase.Save(ctx, data)
 		if err != nil {
 			return err
 		}
-		err = u.userRepo.Update(ctx, &entity.User{ID: userID, AvatarID: &avatarID})
+		err = u.userRepo.Update(ctx, &dto.UserUpdate{ID: data.UserID, AvatarID: avatarID})
 		if err != nil {
 
 			if errors.Is(err, repo.ErrNotFound) {
-				return u.errHandler.BadRequest(err, "user not found", "userID", userID)
+				return u.errHandler.BadRequest(err, "user not found", "userID", data.UserID)
 			}
-			return u.errHandler.InternalTrouble(err, "user update failed", "userID", userID)
+			return u.errHandler.InternalTrouble(err, "user update failed", "userID", data.UserID)
 		}
 		return nil
 	}
@@ -78,7 +79,7 @@ func (u *UseCase) UpdateAvatar(
 	return avatarID, nil
 }
 
-func (u *UseCase) UpdateByID(ctx context.Context, data *entity.User) (*entity.User, error) {
+func (u *UseCase) UpdateByID(ctx context.Context, data *dto.UserUpdate) (*dto.CurrentUser, error) {
 	err := u.userRepo.Update(ctx, data)
 	if err != nil {
 
@@ -94,9 +95,9 @@ func (u *UseCase) UpdateByID(ctx context.Context, data *entity.User) (*entity.Us
 		}
 		return nil, u.errHandler.InternalTrouble(err, "user update failed", "userID", data.ID)
 	}
-	return user, nil
+	return u.toCurrentUser(user), nil
 }
-func (u *UseCase) GetByID(ctx context.Context, ID int) (*entity.User, error) {
+func (u *UseCase) GetByID(ctx context.Context, ID int) (*dto.CurrentUser, error) {
 	user, err := u.userRepo.GetByID(ctx, ID)
 	if err != nil {
 		if errors.Is(err, repo.ErrNotFound) {
@@ -104,6 +105,19 @@ func (u *UseCase) GetByID(ctx context.Context, ID int) (*entity.User, error) {
 		}
 		return nil, u.errHandler.InternalTrouble(err, "user update failed", "userID", ID)
 	}
-	return user, nil
+	return u.toCurrentUser(user), nil
 
+}
+
+func (u *UseCase) toCurrentUser(data *dto.User) *dto.CurrentUser {
+	retVal := &dto.CurrentUser{
+		ID:       data.ID,
+		Username: data.Username,
+		Email:    data.Email,
+	}
+	if data.AvatarID != nil {
+		avatarURL := u.storage.GetPath(*data.AvatarID)
+		retVal.AvatarURL = &avatarURL
+	}
+	return retVal
 }

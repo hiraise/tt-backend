@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"reflect"
 	"task-trail/internal/customerrors"
-	"task-trail/internal/entity"
-	"task-trail/internal/pkg/token"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/dto"
 	"testing"
 	"time"
 
@@ -20,19 +19,21 @@ func TestUseCaseLogin(t *testing.T) {
 	defer ctrl.Finish()
 
 	type args struct {
-		ctx      context.Context
-		email    string
-		password string
+		ctx  context.Context
+		data *dto.Credentials
 	}
 	ctx := context.Background()
-	a := args{
-		ctx:      ctx,
-		email:    testEmail,
-		password: testPwd,
+	data := &dto.Credentials{
+		Email:    testEmail,
+		Password: testPwd,
 	}
-	getTestUser := func(verified bool) *entity.User {
+	a := args{
+		ctx:  ctx,
+		data: data,
+	}
+	getTestUser := func(verified bool) *dto.User {
 
-		user := &entity.User{ID: 1, Email: testEmail, PasswordHash: testPwd}
+		user := &dto.User{ID: 1, Email: testEmail, PasswordHash: testPwd}
 		if verified {
 			t := time.Now()
 			user.VerifiedAt = &t
@@ -40,24 +41,26 @@ func TestUseCaseLogin(t *testing.T) {
 		return user
 	}
 
-	at := &token.Token{
+	at := &dto.AccessToken{
+		Token: "123",
+		Exp:   time.Now(),
+	}
+	rt := &dto.RefreshToken{
 		Token: "123",
 		Jti:   "123",
 		Exp:   time.Now(),
 	}
-	rt := &token.Token{
-		Token: "123",
-		Jti:   "123",
-		Exp:   time.Now(),
+	w := &dto.LoginRes{
+		UserID: 1,
+		AT:     at,
+		RT:     rt,
 	}
 
 	tests := []struct {
 		name        string
 		uc          func(ctrl *gomock.Controller) *UseCase
 		args        args
-		want        int
-		want1       *token.Token
-		want2       *token.Token
+		want        *dto.LoginRes
 		wantErr     bool
 		wantErrType customerrors.ErrType
 		wantErrMsg  string
@@ -75,9 +78,7 @@ func TestUseCaseLogin(t *testing.T) {
 				return uc
 			},
 			wantErr: false,
-			want:    1,
-			want1:   at,
-			want2:   rt,
+			want:    w,
 		},
 		{
 			name: "user not found",
@@ -210,7 +211,7 @@ func TestUseCaseLogin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := tt.uc(ctrl)
-			got, got1, got2, err := u.Login(tt.args.ctx, tt.args.email, tt.args.password)
+			got, err := u.Login(tt.args.ctx, tt.args.data)
 			if tt.wantErr {
 				var e *customerrors.Err
 				if err == nil {
@@ -232,14 +233,8 @@ func TestUseCaseLogin(t *testing.T) {
 					t.Errorf("unexpected error: %v", err)
 				}
 			}
-			if got != tt.want {
-				t.Errorf("userID got = %v, want %v", got, tt.want)
-			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("at got = %v, want %v", got1, tt.want1)
-			}
-			if !reflect.DeepEqual(got2, tt.want2) {
-				t.Errorf("rt got = %v, want %v", got2, tt.want2)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("got = %v, want %v", got, tt.want)
 			}
 		})
 	}

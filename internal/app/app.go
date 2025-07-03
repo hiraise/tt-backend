@@ -76,6 +76,7 @@ func Run(cfg *config.Config) {
 		txManager,
 		userRepo,
 		fileUC,
+		storage,
 		pwdService,
 		errHandler,
 		uuidGenerator,

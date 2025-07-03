@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"task-trail/internal/entity"
+	"task-trail/internal/usecase/dto"
 )
 
 var ErrNotFound = errors.New("entity not found")
@@ -20,11 +21,11 @@ type TxManager interface {
 }
 
 type UserRepository interface {
-	Create(ctx context.Context, user *entity.User) (int, error)
+	Create(ctx context.Context, dto *dto.UserCreate) (int, error)
 	EmailIsTaken(ctx context.Context, email string) (bool, error)
-	GetByEmail(ctx context.Context, email string) (*entity.User, error)
-	GetByID(ctx context.Context, ID int) (*entity.User, error)
-	Update(ctx context.Context, user *entity.User) error
+	GetByEmail(ctx context.Context, email string) (*dto.User, error)
+	GetByID(ctx context.Context, ID int) (*dto.User, error)
+	Update(ctx context.Context, dto *dto.UserUpdate) error
 }
 type VerificationRepository interface {
 	Create(ctx context.Context, userID int, code int) error

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"task-trail/internal/customerrors"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/dto"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -17,15 +18,17 @@ func TestUseCaseRegister(t *testing.T) {
 	defer ctrl.Finish()
 
 	type args struct {
-		ctx      context.Context
-		email    string
-		password string
+		ctx  context.Context
+		data *dto.Credentials
 	}
 
+	data := &dto.Credentials{
+		Email:    testEmail,
+		Password: testPwd,
+	}
 	ctx := context.Background()
 	a := args{ctx: ctx,
-		email:    testEmail,
-		password: testPwd}
+		data: data}
 
 	tests := []struct {
 		name        string
@@ -163,7 +166,7 @@ func TestUseCaseRegister(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := tt.uc(ctrl)
-			err := u.Register(tt.args.ctx, tt.args.email, tt.args.password)
+			err := u.Register(tt.args.ctx, tt.args.data)
 			if tt.wantErr {
 				var e *customerrors.Err
 				if err == nil {

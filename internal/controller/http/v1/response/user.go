@@ -1,8 +1,8 @@
 package response
 
 import (
-	"task-trail/internal/entity"
 	"task-trail/internal/pkg/storage"
+	"task-trail/internal/usecase/dto"
 )
 
 type AvatarRes struct {
@@ -15,21 +15,16 @@ func AvatarToAPI(id string, service storage.Service) *AvatarRes {
 
 type CurrentRes struct {
 	ID        int     `json:"id"`
-	Username  *string `json:"username"`
 	Email     string  `json:"email"`
+	Username  *string `json:"username"`
 	AvatarUrl *string `json:"avatarUrl"`
 }
 
-func UserToAPI(u *entity.User, service storage.Service) *CurrentRes {
-	var avatarUrl *string
-	if u.AvatarID != nil {
-		url := service.GetPath(*u.AvatarID)
-		avatarUrl = &url
-	}
+func CurrentUserFromDTO(data *dto.CurrentUser) *CurrentRes {
 	return &CurrentRes{
-		ID:        u.ID,
-		Username:  u.Username,
-		Email:     u.Email,
-		AvatarUrl: avatarUrl,
+		ID:        data.ID,
+		Username:  data.Username,
+		Email:     data.Email,
+		AvatarUrl: data.AvatarURL,
 	}
 }

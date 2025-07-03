@@ -6,6 +6,7 @@ import (
 	"task-trail/internal/customerrors"
 	"task-trail/internal/entity"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/dto"
 	"testing"
 	"time"
 
@@ -18,15 +19,16 @@ func TestUseCaseResetPassword(t *testing.T) {
 	defer ctrl.Finish()
 
 	type args struct {
-		ctx      context.Context
-		tokenID  string
-		password string
+		ctx  context.Context
+		data *dto.PasswordReset
 	}
-
+	data := &dto.PasswordReset{
+		TokenID:     "123",
+		NewPassword: "123",
+	}
 	ctx := context.Background()
 	a := args{ctx: ctx,
-		tokenID:  "123",
-		password: "123",
+		data: data,
 	}
 
 	validToken := entity.EmailToken{
@@ -196,7 +198,7 @@ func TestUseCaseResetPassword(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := tt.uc(ctrl)
-			err := u.ResetPassword(tt.args.ctx, tt.args.tokenID, tt.args.password)
+			err := u.ResetPassword(tt.args.ctx, tt.args.data)
 			if tt.wantErr {
 				var e *customerrors.Err
 				if err == nil {

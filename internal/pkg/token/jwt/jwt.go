@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"task-trail/internal/pkg/token"
 	"task-trail/internal/pkg/uuid"
+	"task-trail/internal/usecase/dto"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -38,7 +39,7 @@ func New(
 	}
 }
 
-func (s *jwtService) GenAccessToken(userID int) (*token.Token, error) {
+func (s *jwtService) GenAccessToken(userID int) (*dto.AccessToken, error) {
 	exp := time.Now().Add(time.Minute * s.acLifetime)
 	claims := jwt.MapClaims{
 		"sub": strconv.Itoa(userID),
@@ -49,10 +50,10 @@ func (s *jwtService) GenAccessToken(userID int) (*token.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &token.Token{Token: t, Exp: exp}, nil
+	return &dto.AccessToken{Token: t, Exp: exp}, nil
 }
 
-func (s *jwtService) GenRefreshToken(userID int) (*token.Token, error) {
+func (s *jwtService) GenRefreshToken(userID int) (*dto.RefreshToken, error) {
 	jti := s.uuidGen.Generate()
 	exp := time.Now().Add(time.Minute * s.rtLifetime)
 	claims := jwt.MapClaims{
@@ -65,7 +66,7 @@ func (s *jwtService) GenRefreshToken(userID int) (*token.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &token.Token{Token: t, Exp: exp, Jti: jti}, nil
+	return &dto.RefreshToken{Token: t, Exp: exp, Jti: jti}, nil
 
 }
 

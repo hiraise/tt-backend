@@ -5,23 +5,24 @@ import (
 	"errors"
 	"task-trail/internal/entity"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/dto"
 )
 
-func (u *UseCase) Register(ctx context.Context, email string, password string) error {
+func (u *UseCase) Register(ctx context.Context, data *dto.Credentials) error {
 
 	f := func(ctx context.Context) error {
-		hash, err := u.passwordSvc.HashPassword(password)
+		hash, err := u.passwordSvc.HashPassword(data.Password)
 		if err != nil {
 			return u.errHandler.InternalTrouble(err, "password hashing failed")
 		}
 		// create user
-		user := &entity.User{Email: email, PasswordHash: string(hash)}
+		user := &dto.UserCreate{Email: data.Email, PasswordHash: string(hash)}
 		id, err := u.userRepo.Create(ctx, user)
 		if err != nil {
 			if errors.Is(err, repo.ErrConflict) {
-				return u.errHandler.Conflict(err, "email already taken", "email", email)
+				return u.errHandler.Conflict(err, "email already taken", "email", data.Email)
 			}
-			return u.errHandler.InternalTrouble(err, "failed to create new user", "email", email)
+			return u.errHandler.InternalTrouble(err, "failed to create new user", "email", data.Email)
 		}
 		// create email token
 		tokenID, err := u.createEmailToken(ctx, id, entity.PurposeVerification)
@@ -29,7 +30,7 @@ func (u *UseCase) Register(ctx context.Context, email string, password string) e
 			return err
 		}
 		// send verification
-		if err := u.notificationRepo.SendVerificationEmail(ctx, email, tokenID); err != nil {
+		if err := u.notificationRepo.SendVerificationEmail(ctx, data.Email, tokenID); err != nil {
 			return u.errHandler.InternalTrouble(err, "verification email sending failed", "userID", id)
 		}
 		return nil

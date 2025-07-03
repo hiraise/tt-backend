@@ -6,6 +6,7 @@ import (
 	"io"
 	"mime/multipart"
 	"path/filepath"
+	"task-trail/internal/usecase/dto"
 )
 
 type FileReq struct {
@@ -38,4 +39,8 @@ func FileFromAPI(file *multipart.FileHeader) (*FileReq, error) {
 	retVal.Body = buf.Bytes()
 	return retVal, nil
 
+}
+
+func (r *FileReq) ToDTO(userID int) *dto.UploadFile {
+	return &dto.UploadFile{UserID: userID, File: &dto.File{Data: r.Body, Name: r.Name, MimeType: r.MimeType}}
 }

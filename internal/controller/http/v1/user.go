@@ -8,6 +8,7 @@ import (
 	"task-trail/internal/pkg/contextmanager"
 	"task-trail/internal/pkg/storage"
 	"task-trail/internal/usecase"
+	"task-trail/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,18 +43,14 @@ func (r *usersRoutes) getUser(c *gin.Context) {
 // @Success 	200
 // @Router 		/v1/users/me [get]
 func (r *usersRoutes) getMe(c *gin.Context) {
-	userID, err := r.contextmanager.GetUserID(c)
-	if err != nil {
-		_ = c.Error(err)
-		return
-	}
+	userID := utils.Must(r.contextmanager.GetUserID(c))
 
 	u, err := r.u.GetByID(c, userID)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, response.UserToAPI(u, r.storage))
+	c.JSON(http.StatusOK, response.CurrentUserFromDTO(u))
 }
 
 // @Summary 	upload new avatar
@@ -80,13 +77,9 @@ func (r *usersRoutes) updateAvatar(c *gin.Context) {
 		return
 	}
 
-	userID, err := r.contextmanager.GetUserID(c)
-	if err != nil {
-		_ = c.Error(err)
-		return
-	}
+	userID := utils.Must(r.contextmanager.GetUserID(c))
 
-	avatarID, err := r.u.UpdateAvatar(c, userID, f.Body, f.Name, f.MimeType)
+	avatarID, err := r.u.UpdateAvatar(c, f.ToDTO(userID))
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -116,20 +109,15 @@ func (r *usersRoutes) updateMe(c *gin.Context) {
 		return
 	}
 	// cast parsed body to entity
-	data := body.ToEntity()
-	userID, err := r.contextmanager.GetUserID(c)
-	if err != nil {
-		_ = c.Error(err)
-		return
-	}
-	data.ID = userID
+	userID := utils.Must(r.contextmanager.GetUserID(c))
+	data := body.ToDTO(userID)
 
 	u, err := r.u.UpdateByID(c, data)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, response.UserToAPI(u, r.storage))
+	c.JSON(http.StatusOK, response.CurrentUserFromDTO(u))
 }
 func NewUserRouter(
 	router *gin.RouterGroup,

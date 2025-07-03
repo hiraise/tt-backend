@@ -1,18 +1,32 @@
 package dto
 
-type FileDTO struct {
-	Data     []byte
-	Name     string
-	MimeType string
+import "time"
+
+
+
+type UserUpdate struct {
+	ID           int
+	Username     string
+	Email        string
+	AvatarID     string
+	VerifiedAt   time.Time
+	PasswordHash string
 }
 
-type UpdateAvatarDTO struct {
-	UserID int
-	File   FileDTO
+// Response DTO
+
+type CurrentUser struct {
+	ID        int
+	Email     string
+	Username  *string
+	AvatarURL *string
 }
 
-type ChangePasswordDTO struct {
-	UserID      int
-	OldPassword string
-	NewPassword string
+type User struct {
+	ID           int
+	Email        string
+	PasswordHash string
+	VerifiedAt   *time.Time
+	AvatarID     *string
+	Username     *string
 }
