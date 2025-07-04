@@ -41,10 +41,10 @@ func (m *MockTokenService) EXPECT() *MockTokenServiceMockRecorder {
 }
 
 // GenAccessToken mocks base method.
-func (m *MockTokenService) GenAccessToken(userID int) (*dto.AccessToken, error) {
+func (m *MockTokenService) GenAccessToken(userID int) (*dto.AccessTokenRes, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenAccessToken", userID)
-	ret0, _ := ret[0].(*dto.AccessToken)
+	ret0, _ := ret[0].(*dto.AccessTokenRes)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -56,10 +56,10 @@ func (mr *MockTokenServiceMockRecorder) GenAccessToken(userID any) *gomock.Call 
 }
 
 // GenRefreshToken mocks base method.
-func (m *MockTokenService) GenRefreshToken(userID int) (*dto.RefreshToken, error) {
+func (m *MockTokenService) GenRefreshToken(userID int) (*dto.RefreshTokenRes, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenRefreshToken", userID)
-	ret0, _ := ret[0].(*dto.RefreshToken)
+	ret0, _ := ret[0].(*dto.RefreshTokenRes)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

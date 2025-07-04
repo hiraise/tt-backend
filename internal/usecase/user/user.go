@@ -50,10 +50,10 @@ func New(
 
 func (u *UseCase) UpdateAvatar(
 	ctx context.Context,
-	data *dto.UploadFile,
-) (string, error) {
+	data *dto.FileUpload,
+) (*dto.UserAvatar, error) {
 	if !avatarAllowedMimeTypes[data.File.MimeType] {
-		return "", u.errHandler.BadRequest(nil, "invalid mime type", "mimeType", data.File.MimeType)
+		return nil, u.errHandler.BadRequest(nil, "invalid mime type", "mimeType", data.File.MimeType)
 	}
 	var avatarID string
 	var err error
@@ -62,9 +62,9 @@ func (u *UseCase) UpdateAvatar(
 		if err != nil {
 			return err
 		}
-		err = u.userRepo.Update(ctx, &dto.UserUpdate{ID: data.UserID, AvatarID: avatarID})
-		if err != nil {
 
+		newAvatar := &dto.UserUpdate{ID: data.UserID, AvatarID: avatarID}
+		if err := u.userRepo.Update(ctx, newAvatar); err != nil {
 			if errors.Is(err, repo.ErrNotFound) {
 				return u.errHandler.BadRequest(err, "user not found", "userID", data.UserID)
 			}
@@ -74,9 +74,9 @@ func (u *UseCase) UpdateAvatar(
 	}
 
 	if err := u.txManager.DoWithTx(ctx, fn); err != nil {
-		return "", err
+		return nil, err
 	}
-	return avatarID, nil
+	return &dto.UserAvatar{AvatarURL: u.storage.GetPath(avatarID)}, nil
 }
 
 func (u *UseCase) UpdateByID(ctx context.Context, data *dto.UserUpdate) (*dto.CurrentUser, error) {
@@ -88,14 +88,7 @@ func (u *UseCase) UpdateByID(ctx context.Context, data *dto.UserUpdate) (*dto.Cu
 		}
 		return nil, u.errHandler.InternalTrouble(err, "user update failed", "userID", data.ID)
 	}
-	user, err := u.userRepo.GetByID(ctx, data.ID)
-	if err != nil {
-		if errors.Is(err, repo.ErrNotFound) {
-			return nil, u.errHandler.BadRequest(err, "user not found", "userID", data.ID)
-		}
-		return nil, u.errHandler.InternalTrouble(err, "user update failed", "userID", data.ID)
-	}
-	return u.toCurrentUser(user), nil
+	return u.GetByID(ctx, data.ID)
 }
 func (u *UseCase) GetByID(ctx context.Context, ID int) (*dto.CurrentUser, error) {
 	user, err := u.userRepo.GetByID(ctx, ID)
@@ -103,7 +96,7 @@ func (u *UseCase) GetByID(ctx context.Context, ID int) (*dto.CurrentUser, error)
 		if errors.Is(err, repo.ErrNotFound) {
 			return nil, u.errHandler.BadRequest(err, "user not found", "userID", ID)
 		}
-		return nil, u.errHandler.InternalTrouble(err, "user update failed", "userID", ID)
+		return nil, u.errHandler.InternalTrouble(err, "user get failed", "userID", ID)
 	}
 	return u.toCurrentUser(user), nil
 

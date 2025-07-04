@@ -1,7 +1,6 @@
 package response
 
 import (
-	"task-trail/internal/pkg/storage"
 	"task-trail/internal/usecase/dto"
 )
 
@@ -9,8 +8,8 @@ type AvatarRes struct {
 	AvatarUrl string `json:"avatarUrl"`
 }
 
-func AvatarToAPI(id string, service storage.Service) *AvatarRes {
-	return &AvatarRes{AvatarUrl: service.GetPath(id)}
+func NewAvatarResFromDTO(data *dto.UserAvatar) *AvatarRes {
+	return &AvatarRes{AvatarUrl: data.AvatarURL}
 }
 
 type CurrentRes struct {
@@ -20,7 +19,7 @@ type CurrentRes struct {
 	AvatarUrl *string `json:"avatarUrl"`
 }
 
-func CurrentUserFromDTO(data *dto.CurrentUser) *CurrentRes {
+func NewCurrentResFromDTO(data *dto.CurrentUser) *CurrentRes {
 	return &CurrentRes{
 		ID:        data.ID,
 		Username:  data.Username,

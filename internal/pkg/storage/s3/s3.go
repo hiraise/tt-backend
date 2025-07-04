@@ -46,7 +46,7 @@ func New(accessKey, secretKey, uploadURL, publicURL, bucket string) (*Service, e
 	return retVal, nil
 }
 
-func (s *Service) Save(ctx context.Context, dto *dto.File) error {
+func (s *Service) Save(ctx context.Context, dto *dto.UploadFileData) error {
 
 	_, err := s.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(s.bucket),

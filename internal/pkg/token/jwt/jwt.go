@@ -39,7 +39,7 @@ func New(
 	}
 }
 
-func (s *jwtService) GenAccessToken(userID int) (*dto.AccessToken, error) {
+func (s *jwtService) GenAccessToken(userID int) (*dto.AccessTokenRes, error) {
 	exp := time.Now().Add(time.Minute * s.acLifetime)
 	claims := jwt.MapClaims{
 		"sub": strconv.Itoa(userID),
@@ -50,10 +50,10 @@ func (s *jwtService) GenAccessToken(userID int) (*dto.AccessToken, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &dto.AccessToken{Token: t, Exp: exp}, nil
+	return &dto.AccessTokenRes{Token: t, Exp: exp}, nil
 }
 
-func (s *jwtService) GenRefreshToken(userID int) (*dto.RefreshToken, error) {
+func (s *jwtService) GenRefreshToken(userID int) (*dto.RefreshTokenRes, error) {
 	jti := s.uuidGen.Generate()
 	exp := time.Now().Add(time.Minute * s.rtLifetime)
 	claims := jwt.MapClaims{
@@ -66,7 +66,7 @@ func (s *jwtService) GenRefreshToken(userID int) (*dto.RefreshToken, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &dto.RefreshToken{Token: t, Exp: exp, Jti: jti}, nil
+	return &dto.RefreshTokenRes{Token: t, Exp: exp, ID: jti}, nil
 
 }
 

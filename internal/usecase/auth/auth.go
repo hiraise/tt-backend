@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"task-trail/internal/customerrors"
-	"task-trail/internal/entity"
 	"task-trail/internal/pkg/password"
 	"task-trail/internal/pkg/token"
 	"task-trail/internal/pkg/uuid"
@@ -91,7 +90,7 @@ func (u *UseCase) revokeRT(ctx context.Context, tokenID string, userID int) erro
 	return nil
 }
 
-func (u *UseCase) generateAuthTokens(userID int) (*dto.AccessToken, *dto.RefreshToken, error) {
+func (u *UseCase) generateAuthTokens(userID int) (*dto.AccessTokenRes, *dto.RefreshTokenRes, error) {
 	at, err := u.tokenSvc.GenAccessToken(userID)
 	if err != nil {
 		return nil, nil, u.errHandler.InternalTrouble(err, "generation access token failed", "userID", userID)
@@ -103,8 +102,8 @@ func (u *UseCase) generateAuthTokens(userID int) (*dto.AccessToken, *dto.Refresh
 	return at, rt, nil
 }
 
-func (u *UseCase) createEmailToken(ctx context.Context, userID int, purpose entity.EmailTokenPurpose) (string, error) {
-	et := entity.EmailToken{
+func (u *UseCase) createEmailToken(ctx context.Context, userID int, purpose dto.EmailTokenPurpose) (string, error) {
+	et := &dto.EmailTokenCreate{
 		ID:        u.uuid.Generate(),
 		ExpiredAt: time.Now().Add(time.Minute * 10),
 		UserID:    userID,
@@ -132,7 +131,7 @@ func (u *UseCase) useEmailToken(ctx context.Context, tokenID string) error {
 	return nil
 }
 
-func (u *UseCase) getEmailToken(ctx context.Context, tokenID string) (*entity.EmailToken, error) {
+func (u *UseCase) getEmailToken(ctx context.Context, tokenID string) (*dto.EmailToken, error) {
 	token, err := u.etRepo.GetByID(ctx, tokenID)
 	if err != nil {
 		if errors.Is(err, repo.ErrNotFound) {

@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"errors"
-	"task-trail/internal/entity"
 	"task-trail/internal/repo"
 	"task-trail/internal/usecase/dto"
 )
@@ -25,7 +24,7 @@ func (u *UseCase) Register(ctx context.Context, data *dto.Credentials) error {
 			return u.errHandler.InternalTrouble(err, "failed to create new user", "email", data.Email)
 		}
 		// create email token
-		tokenID, err := u.createEmailToken(ctx, id, entity.PurposeVerification)
+		tokenID, err := u.createEmailToken(ctx, id, dto.PurposeVerification)
 		if err != nil {
 			return err
 		}

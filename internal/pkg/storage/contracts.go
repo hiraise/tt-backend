@@ -6,7 +6,7 @@ import (
 )
 
 type Service interface {
-	Save(ctx context.Context, dto *dto.File) error
+	Save(ctx context.Context, dto *dto.UploadFileData) error
 	Delete(ctx context.Context, name string) error
 	GetPath(name string) string
 }

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"task-trail/internal/customerrors"
-	"task-trail/internal/entity"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/dto"
 	"testing"
 	"time"
 
@@ -20,7 +20,7 @@ func TestUseCaseLogout(t *testing.T) {
 		ctx context.Context
 		rt  string
 	}
-	oldRT := entity.RefreshToken{
+	oldRT := dto.RefreshToken{
 		ID:        "123",
 		UserID:    1,
 		ExpiredAt: time.Now().Add(100 * time.Minute),
@@ -100,7 +100,7 @@ func TestUseCaseLogout(t *testing.T) {
 				deps.rtRepo.EXPECT().
 					GetByID(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: time.Now()}, nil)
+					Return(&dto.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: time.Now()}, nil)
 				return uc
 			},
 			wantErr:     true,
@@ -117,7 +117,7 @@ func TestUseCaseLogout(t *testing.T) {
 				deps.rtRepo.EXPECT().
 					GetByID(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
+					Return(&dto.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
 				deps.rtRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(1, nil)
 				return uc
 			},
@@ -135,7 +135,7 @@ func TestUseCaseLogout(t *testing.T) {
 				deps.rtRepo.EXPECT().
 					GetByID(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
+					Return(&dto.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
 				deps.rtRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(0, repo.ErrInternal)
 				return uc
 			},

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"task-trail/internal/customerrors"
-	"task-trail/internal/entity"
 	"task-trail/internal/repo"
 	"task-trail/internal/usecase/dto"
 	"testing"
@@ -31,11 +30,11 @@ func TestUseCaseResetPassword(t *testing.T) {
 		data: data,
 	}
 
-	validToken := entity.EmailToken{
+	validToken := dto.EmailToken{
 		ID:        "123",
 		ExpiredAt: time.Now().Add(time.Minute * 10),
 		UserID:    1,
-		Purpose:   entity.PurposeReset,
+		Purpose:   dto.PurposeReset,
 	}
 	tests := []struct {
 		name        string

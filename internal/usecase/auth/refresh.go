@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"errors"
-	"task-trail/internal/entity"
 	"task-trail/internal/repo"
 	"task-trail/internal/usecase/dto"
 )
@@ -19,7 +18,7 @@ func (u *UseCase) Refresh(ctx context.Context, oldRT string) (*dto.RefreshRes, e
 		if err != nil {
 			return err
 		}
-		if err := u.rtRepo.Create(ctx, &entity.RefreshToken{ID: retVal.RT.Jti, ExpiredAt: retVal.RT.Exp, UserID: userID}); err != nil {
+		if err := u.rtRepo.Create(ctx, &dto.RefreshTokenCreate{ID: retVal.RT.ID, ExpiredAt: retVal.RT.Exp, UserID: userID}); err != nil {
 			if errors.Is(err, repo.ErrConflict) {
 				return u.errHandler.Conflict(err, "refresh token already exists")
 			}

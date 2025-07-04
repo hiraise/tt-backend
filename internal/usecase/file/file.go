@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"task-trail/internal/customerrors"
-	"task-trail/internal/entity"
 	"task-trail/internal/pkg/storage"
 	"task-trail/internal/pkg/uuid"
 	"task-trail/internal/repo"
@@ -37,11 +36,11 @@ func New(
 
 func (u *UseCase) Save(
 	ctx context.Context,
-	data *dto.UploadFile,
+	data *dto.FileUpload,
 ) (string, error) {
 	name := u.uuidGen.Generate()
 	// register in db
-	f := &entity.File{
+	f := &dto.FileCreate{
 		ID:           name,
 		OriginalName: data.File.Name,
 		MimeType:     data.File.MimeType,

@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-	"task-trail/internal/entity"
+	"task-trail/internal/usecase/dto"
 )
 
 func (u *UseCase) ResendVerificationEmail(ctx context.Context, email string) error {
@@ -16,7 +16,7 @@ func (u *UseCase) ResendVerificationEmail(ctx context.Context, email string) err
 			return u.errHandler.BadRequest(nil, "user already verified", "userID", user.ID)
 		}
 		// create email token
-		tokenID, err := u.createEmailToken(ctx, user.ID, entity.PurposeVerification)
+		tokenID, err := u.createEmailToken(ctx, user.ID, dto.PurposeVerification)
 		if err != nil {
 			return err
 		}

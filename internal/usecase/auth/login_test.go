@@ -41,13 +41,13 @@ func TestUseCaseLogin(t *testing.T) {
 		return user
 	}
 
-	at := &dto.AccessToken{
+	at := &dto.AccessTokenRes{
 		Token: "123",
 		Exp:   time.Now(),
 	}
-	rt := &dto.RefreshToken{
+	rt := &dto.RefreshTokenRes{
 		Token: "123",
-		Jti:   "123",
+		ID:    "123",
 		Exp:   time.Now(),
 	}
 	w := &dto.LoginRes{

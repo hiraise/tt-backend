@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"reflect"
 	"task-trail/internal/customerrors"
-	"task-trail/internal/entity"
 	"task-trail/internal/repo"
 	"task-trail/internal/usecase/dto"
 	"testing"
@@ -22,7 +21,7 @@ func TestUseCaseRefresh(t *testing.T) {
 		ctx   context.Context
 		oldRT string
 	}
-	oldRT := entity.RefreshToken{
+	oldRT := dto.RefreshToken{
 		ID:        "123",
 		UserID:    1,
 		ExpiredAt: time.Now().Add(100 * time.Minute),
@@ -33,13 +32,13 @@ func TestUseCaseRefresh(t *testing.T) {
 		ctx:   ctx,
 		oldRT: "123",
 	}
-	newAT := &dto.AccessToken{
+	newAT := &dto.AccessTokenRes{
 		Token: "123",
 		Exp:   time.Now(),
 	}
-	newRT := &dto.RefreshToken{
+	newRT := &dto.RefreshTokenRes{
 		Token: "123",
-		Jti:   "123",
+		ID:    "123",
 		Exp:   time.Now(),
 	}
 	w := &dto.RefreshRes{
@@ -120,7 +119,7 @@ func TestUseCaseRefresh(t *testing.T) {
 				deps.rtRepo.EXPECT().
 					GetByID(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: time.Now()}, nil)
+					Return(&dto.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: time.Now()}, nil)
 				return uc
 			},
 			wantErr:     true,
@@ -137,7 +136,7 @@ func TestUseCaseRefresh(t *testing.T) {
 				deps.rtRepo.EXPECT().
 					GetByID(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
+					Return(&dto.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
 				deps.rtRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(1, nil)
 				return uc
 			},
@@ -155,7 +154,7 @@ func TestUseCaseRefresh(t *testing.T) {
 				deps.rtRepo.EXPECT().
 					GetByID(
 						ctx, gomock.Any(), gomock.Any()).
-					Return(&entity.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
+					Return(&dto.RefreshToken{ID: oldRT.ID, UserID: oldRT.UserID, ExpiredAt: oldRT.ExpiredAt, RevokedAt: &oldRT.ExpiredAt}, nil)
 				deps.rtRepo.EXPECT().RevokeAllUsersTokens(ctx, gomock.Any()).Return(0, repo.ErrInternal)
 				return uc
 			},

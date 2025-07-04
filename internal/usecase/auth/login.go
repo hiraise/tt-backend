@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"errors"
-	"task-trail/internal/entity"
 	"task-trail/internal/repo"
 	"task-trail/internal/usecase/dto"
 )
@@ -31,8 +30,8 @@ func (u *UseCase) Login(ctx context.Context, data *dto.Credentials) (*dto.LoginR
 		return nil, err
 	}
 
-	t := &entity.RefreshToken{
-		ID:        retVal.RT.Jti,
+	t := &dto.RefreshTokenCreate{
+		ID:        retVal.RT.ID,
 		ExpiredAt: retVal.RT.Exp,
 		UserID:    user.ID,
 	}

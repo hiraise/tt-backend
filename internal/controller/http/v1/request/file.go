@@ -4,24 +4,22 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"path/filepath"
 	"task-trail/internal/usecase/dto"
+
+	"github.com/gin-gonic/gin"
 )
 
-type FileReq struct {
-	Body     []byte
-	Name     string
-	MimeType string
-}
-
-func FileFromAPI(file *multipart.FileHeader) (*FileReq, error) {
-	retVal := &FileReq{}
-	retVal.MimeType = file.Header.Get("Content-Type")
-	if retVal.MimeType == "" {
+func BindFileUploadDTO(c *gin.Context, userID int) (*dto.FileUpload, error) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return nil, err
+	}
+	mimeType := file.Header.Get("Content-Type")
+	if mimeType == "" {
 		return nil, fmt.Errorf("mime-type is undefinded")
 	}
-	retVal.Name = filepath.Base(file.Filename)
+	name := filepath.Base(file.Filename)
 
 	buf := bytes.NewBuffer(nil)
 	f, err := file.Open()
@@ -36,11 +34,13 @@ func FileFromAPI(file *multipart.FileHeader) (*FileReq, error) {
 	if buf.Len() == 0 {
 		return nil, fmt.Errorf("file corrupted, file length is 0")
 	}
-	retVal.Body = buf.Bytes()
-	return retVal, nil
-
-}
-
-func (r *FileReq) ToDTO(userID int) *dto.UploadFile {
-	return &dto.UploadFile{UserID: userID, File: &dto.File{Data: r.Body, Name: r.Name, MimeType: r.MimeType}}
+	body := buf.Bytes()
+	return &dto.FileUpload{
+		UserID: userID,
+		File: &dto.UploadFileData{
+			Data:     body,
+			Name:     name,
+			MimeType: mimeType,
+		},
+	}, nil
 }

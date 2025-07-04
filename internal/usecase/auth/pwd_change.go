@@ -25,11 +25,8 @@ func (u *UseCase) ChangePassword(ctx context.Context, data *dto.PasswordChange) 
 	if err != nil {
 		return u.errHandler.InternalTrouble(err, "hashing new password failed", "userID", data.UserID)
 	}
-	if err := u.userRepo.Update(ctx, &dto.UserUpdate{PasswordHash: h, ID: user.ID}); err != nil {
-		if errors.Is(err, repo.ErrNotFound) {
-			return u.errHandler.BadRequest(err, "user not found", "userID", data.UserID)
-		}
-		return u.errHandler.InternalTrouble(err, "password change failed", "userID", data.UserID)
+	if err := u.updateUser(ctx, &dto.UserUpdate{PasswordHash: h, ID: user.ID}); err != nil {
+		return err
 	}
 	return nil
 }

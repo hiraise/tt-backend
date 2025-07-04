@@ -50,7 +50,7 @@ func (r *usersRoutes) getMe(c *gin.Context) {
 		_ = c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, response.CurrentUserFromDTO(u))
+	c.JSON(http.StatusOK, response.NewCurrentResFromDTO(u))
 }
 
 // @Summary 	upload new avatar
@@ -64,28 +64,20 @@ func (r *usersRoutes) getMe(c *gin.Context) {
 // @Failure		401 {object} response.ErrAPI "authentication required"
 // @Router 		/v1/users/me/avatar [patch]
 func (r *usersRoutes) updateAvatar(c *gin.Context) {
-	// extract file
-	file, err := c.FormFile("file")
+	
+	userID := utils.Must(r.contextmanager.GetUserID(c))
+	data, err := request.BindFileUploadDTO(c, userID)
 	if err != nil {
 		_ = c.Error(r.errHandler.Validation(err))
 		return
 	}
-	// map file to FileReq
-	f, err := request.FileFromAPI(file)
-	if err != nil {
-		_ = c.Error(r.errHandler.InternalTrouble(err, "file mapping failure"))
-		return
-	}
-
-	userID := utils.Must(r.contextmanager.GetUserID(c))
-
-	avatarID, err := r.u.UpdateAvatar(c, f.ToDTO(userID))
+	res, err := r.u.UpdateAvatar(c, data)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
 
-	c.JSON(http.StatusOK, response.AvatarToAPI(avatarID, r.storage))
+	c.JSON(http.StatusOK, response.NewAvatarResFromDTO(res))
 
 }
 
@@ -117,7 +109,7 @@ func (r *usersRoutes) updateMe(c *gin.Context) {
 		_ = c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, response.CurrentUserFromDTO(u))
+	c.JSON(http.StatusOK, response.NewCurrentResFromDTO(u))
 }
 func NewUserRouter(
 	router *gin.RouterGroup,

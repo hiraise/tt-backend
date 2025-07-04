@@ -1,8 +1,6 @@
 package dto
 
-import "time"
-
-//
+// request
 
 type Credentials struct {
 	Email    string
@@ -27,23 +25,13 @@ type PasswordReset struct {
 
 // Response
 
-type AccessToken struct {
-	Token string
-	Exp   time.Time
-}
-type RefreshToken struct {
-	Token string
-	Exp   time.Time
-	Jti   string
-}
-
 type LoginRes struct {
 	UserID int
-	AT     *AccessToken
-	RT     *RefreshToken
+	AT     *AccessTokenRes
+	RT     *RefreshTokenRes
 }
 
 type RefreshRes struct {
-	AT *AccessToken
-	RT *RefreshToken
+	AT *AccessTokenRes
+	RT *RefreshTokenRes
 }

@@ -12,7 +12,6 @@ package mocks
 import (
 	context "context"
 	reflect "reflect"
-	entity "task-trail/internal/entity"
 	dto "task-trail/internal/usecase/dto"
 
 	gomock "go.uber.org/mock/gomock"
@@ -231,17 +230,17 @@ func (m *MockRefreshTokenRepository) EXPECT() *MockRefreshTokenRepositoryMockRec
 }
 
 // Create mocks base method.
-func (m *MockRefreshTokenRepository) Create(ctx context.Context, token *entity.RefreshToken) error {
+func (m *MockRefreshTokenRepository) Create(ctx context.Context, data *dto.RefreshTokenCreate) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, token)
+	ret := m.ctrl.Call(m, "Create", ctx, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockRefreshTokenRepositoryMockRecorder) Create(ctx, token any) *gomock.Call {
+func (mr *MockRefreshTokenRepositoryMockRecorder) Create(ctx, data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRefreshTokenRepository)(nil).Create), ctx, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRefreshTokenRepository)(nil).Create), ctx, data)
 }
 
 // DeleteRevokedAndOldTokens mocks base method.
@@ -260,10 +259,10 @@ func (mr *MockRefreshTokenRepositoryMockRecorder) DeleteRevokedAndOldTokens(ctx,
 }
 
 // GetByID mocks base method.
-func (m *MockRefreshTokenRepository) GetByID(ctx context.Context, tokenID string, userID int) (*entity.RefreshToken, error) {
+func (m *MockRefreshTokenRepository) GetByID(ctx context.Context, tokenID string, userID int) (*dto.RefreshToken, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", ctx, tokenID, userID)
-	ret0, _ := ret[0].(*entity.RefreshToken)
+	ret0, _ := ret[0].(*dto.RefreshToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -328,17 +327,17 @@ func (m *MockEmailTokenRepository) EXPECT() *MockEmailTokenRepositoryMockRecorde
 }
 
 // Create mocks base method.
-func (m *MockEmailTokenRepository) Create(ctx context.Context, token entity.EmailToken) error {
+func (m *MockEmailTokenRepository) Create(ctx context.Context, data *dto.EmailTokenCreate) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, token)
+	ret := m.ctrl.Call(m, "Create", ctx, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockEmailTokenRepositoryMockRecorder) Create(ctx, token any) *gomock.Call {
+func (mr *MockEmailTokenRepositoryMockRecorder) Create(ctx, data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockEmailTokenRepository)(nil).Create), ctx, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockEmailTokenRepository)(nil).Create), ctx, data)
 }
 
 // DeleteUsedAndOldTokens mocks base method.
@@ -357,10 +356,10 @@ func (mr *MockEmailTokenRepositoryMockRecorder) DeleteUsedAndOldTokens(ctx, olde
 }
 
 // GetByID mocks base method.
-func (m *MockEmailTokenRepository) GetByID(ctx context.Context, tokenID string) (*entity.EmailToken, error) {
+func (m *MockEmailTokenRepository) GetByID(ctx context.Context, tokenID string) (*dto.EmailToken, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", ctx, tokenID)
-	ret0, _ := ret[0].(*entity.EmailToken)
+	ret0, _ := ret[0].(*dto.EmailToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -462,7 +461,7 @@ func (m *MockFileRepository) EXPECT() *MockFileRepositoryMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockFileRepository) Create(ctx context.Context, file *entity.File) error {
+func (m *MockFileRepository) Create(ctx context.Context, file *dto.FileCreate) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, file)
 	ret0, _ := ret[0].(error)

@@ -2,7 +2,7 @@ package persistent
 
 import (
 	"context"
-	"task-trail/internal/entity"
+	"task-trail/internal/usecase/dto"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -15,7 +15,7 @@ func NewFileRepo(db *pgxpool.Pool) *PgFileRepository {
 	return &PgFileRepository{PgRepostitory{pg: db}}
 }
 
-func (r *PgFileRepository) Create(ctx context.Context, file *entity.File) error {
+func (r *PgFileRepository) Create(ctx context.Context, file *dto.FileCreate) error {
 	query := `
 		INSERT INTO files 
 		(id, original_name, mime_type, owner_id) 

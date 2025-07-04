@@ -27,7 +27,7 @@ type Authentication interface {
 // It provides methods for updating a user's avatar, updating user information by ID,
 // and retrieving a user by their ID.
 type User interface {
-	UpdateAvatar(ctx context.Context, data *dto.UploadFile) (string, error)
+	UpdateAvatar(ctx context.Context, data *dto.FileUpload) (*dto.UserAvatar, error)
 	UpdateByID(ctx context.Context, data *dto.UserUpdate) (*dto.CurrentUser, error)
 	GetByID(ctx context.Context, ID int) (*dto.CurrentUser, error)
 }
@@ -36,5 +36,5 @@ type User interface {
 // It provides a method to save a file with associated metadata such as owner ID, filename, and MIME type.
 // The Save method returns the identifier of the uploaded file, or an error if the operation fails.
 type File interface {
-	Save(ctx context.Context, data *dto.UploadFile) (string, error)
+	Save(ctx context.Context, data *dto.FileUpload) (string, error)
 }

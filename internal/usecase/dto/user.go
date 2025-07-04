@@ -2,7 +2,17 @@ package dto
 
 import "time"
 
+// entity
+type User struct {
+	ID           int
+	Email        string
+	PasswordHash string
+	VerifiedAt   *time.Time
+	AvatarID     *string
+	Username     *string
+}
 
+// request
 
 type UserUpdate struct {
 	ID           int
@@ -13,7 +23,7 @@ type UserUpdate struct {
 	PasswordHash string
 }
 
-// Response DTO
+// response
 
 type CurrentUser struct {
 	ID        int
@@ -22,11 +32,6 @@ type CurrentUser struct {
 	AvatarURL *string
 }
 
-type User struct {
-	ID           int
-	Email        string
-	PasswordHash string
-	VerifiedAt   *time.Time
-	AvatarID     *string
-	Username     *string
+type UserAvatar struct {
+	AvatarURL string
 }

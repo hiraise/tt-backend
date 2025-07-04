@@ -14,7 +14,7 @@ import (
 type Gin interface {
 	DeleteAccessToken(c *gin.Context, name string)
 	DeleteTokens(c *gin.Context, atName string, rtName string, refreshPath string)
-	SetTokens(c *gin.Context, at *dto.AccessToken, rt *dto.RefreshToken, atName string, rtName string, refreshPath string)
+	SetTokens(c *gin.Context, at *dto.AccessTokenRes, rt *dto.RefreshTokenRes, atName string, rtName string, refreshPath string)
 	SetUserID(c *gin.Context, userID int)
 	GetUserID(c *gin.Context) (int, error)
 	SetRequestID(c *gin.Context)
@@ -40,7 +40,7 @@ func (m *GinContextManager) DeleteTokens(c *gin.Context, atName string, rtName s
 	c.SetCookie(rtName, "", -1, refreshPath, "", true, true)
 }
 
-func (m *GinContextManager) SetTokens(c *gin.Context, at *dto.AccessToken, rt *dto.RefreshToken, atName string, rtName string, refreshPath string) {
+func (m *GinContextManager) SetTokens(c *gin.Context, at *dto.AccessTokenRes, rt *dto.RefreshTokenRes, atName string, rtName string, refreshPath string) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	atTime := int(time.Until(at.Exp).Seconds())
 	rtTime := int(time.Until(rt.Exp).Seconds())
