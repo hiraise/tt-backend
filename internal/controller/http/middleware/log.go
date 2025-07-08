@@ -12,13 +12,13 @@ import (
 func NewLog(l logger.Logger, m contextmanager.Gin) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
+		start := time.Now()
+		c.Next()
 		var userID *int = nil
 		v, err := m.GetUserID(c)
 		if err == nil {
 			userID = &v
 		}
-		start := time.Now()
-		c.Next()
 		latency := time.Since(start)
 		status := c.Writer.Status()
 		args := []any{
