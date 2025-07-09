@@ -68,7 +68,7 @@ func (u *UseCase) UpdateAvatar(
 			if errors.Is(err, repo.ErrNotFound) {
 				return u.errHandler.BadRequest(err, "user not found", "userID", data.UserID)
 			}
-			return u.errHandler.InternalTrouble(err, "user update failed", "userID", data.UserID)
+			return u.errHandler.InternalTrouble(err, "failed to update user", "userID", data.UserID)
 		}
 		return nil
 	}
@@ -86,7 +86,7 @@ func (u *UseCase) UpdateByID(ctx context.Context, data *dto.UserUpdate) (*dto.Cu
 		if errors.Is(err, repo.ErrNotFound) {
 			return nil, u.errHandler.BadRequest(err, "user not found", "userID", data.ID)
 		}
-		return nil, u.errHandler.InternalTrouble(err, "user update failed", "userID", data.ID)
+		return nil, u.errHandler.InternalTrouble(err, "failed to update user", "userID", data.ID)
 	}
 	return u.GetCurrentByID(ctx, data.ID)
 }
@@ -96,7 +96,7 @@ func (u *UseCase) GetCurrentByID(ctx context.Context, ID int) (*dto.CurrentUser,
 		if errors.Is(err, repo.ErrNotFound) {
 			return nil, u.errHandler.BadRequest(err, "user not found", "userID", ID)
 		}
-		return nil, u.errHandler.InternalTrouble(err, "user get failed", "userID", ID)
+		return nil, u.errHandler.InternalTrouble(err, "failed to get user", "userID", ID)
 	}
 	return u.toCurrentUser(user), nil
 

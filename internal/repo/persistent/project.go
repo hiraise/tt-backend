@@ -70,6 +70,7 @@ func (r *PgProjectRepository) AddMembers(ctx context.Context, data *dto.ProjectA
 	query := fmt.Sprintf(`
 		INSERT INTO project_users 
 		(user_id, project_id)
+		VALUES
 		%s
 		`, strings.Join(items, ",\n"))
 	_, err := r.getDb(ctx).Exec(ctx, query, values...)

@@ -5,11 +5,13 @@ import (
 	"errors"
 	"task-trail/internal/customerrors"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase"
 	"task-trail/internal/usecase/dto"
 )
 
 type UseCase struct {
 	txManager   repo.TxManager
+	authUC      usecase.Authentication
 	projectRepo repo.ProjectRepository
 	userRepo    repo.UserRepository
 	errHandler  customerrors.ErrorHandler
@@ -17,12 +19,15 @@ type UseCase struct {
 
 func New(
 	txManager repo.TxManager,
+	authUC usecase.Authentication,
 	projectRepo repo.ProjectRepository,
 	userRepo repo.UserRepository,
 	errHandler customerrors.ErrorHandler,
 ) *UseCase {
 	return &UseCase{
+
 		txManager:   txManager,
+		authUC:      authUC,
 		projectRepo: projectRepo,
 		userRepo:    userRepo,
 		errHandler:  errHandler,

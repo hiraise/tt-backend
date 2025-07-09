@@ -21,7 +21,7 @@ func (u *UseCase) SendPasswordResetEmail(ctx context.Context, email string) erro
 		}
 		// send email
 		if err := u.notificationRepo.SendResetPasswordEmail(ctx, email, tokenID); err != nil {
-			return u.errHandler.InternalTrouble(err, "reset password email sending failed", "userID", user.ID)
+			return u.errHandler.InternalTrouble(err, "failed to send reset password email", "userID", user.ID)
 		}
 		return nil
 	}

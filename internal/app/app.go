@@ -82,7 +82,6 @@ func Run(cfg *config.Config) {
 		errHandler,
 		uuidGenerator,
 	)
-	projectUC := projectuc.New(txManager, projectRepo, userRepo, errHandler)
 	authUC := authuc.New(
 		errHandler,
 		txManager,
@@ -95,6 +94,7 @@ func Run(cfg *config.Config) {
 		uuidGenerator,
 	)
 
+	projectUC := projectuc.New(txManager, authUC, projectRepo, userRepo, errHandler)
 	// init middlewares
 
 	recoveryMW := middleware.NewRecovery(logger1, contextm)

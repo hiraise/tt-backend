@@ -22,7 +22,7 @@ func (u *UseCase) ResendVerificationEmail(ctx context.Context, email string) err
 		}
 		// send verification
 		if err := u.notificationRepo.SendVerificationEmail(ctx, email, tokenID); err != nil {
-			return u.errHandler.InternalTrouble(err, "verification email sending failed", "userID", user.ID)
+			return u.errHandler.InternalTrouble(err, "failed to send verification email", "userID", user.ID)
 		}
 		return nil
 	}

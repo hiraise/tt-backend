@@ -1,4 +1,4 @@
-package auth
+package auth_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"task-trail/internal/customerrors"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/auth"
 	"task-trail/internal/usecase/dto"
 	"testing"
 	"time"
@@ -58,7 +59,7 @@ func TestUseCaseLogin(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		uc          func(ctrl *gomock.Controller) *UseCase
+		uc          func(ctrl *gomock.Controller) *auth.UseCase
 		args        args
 		want        *dto.LoginRes
 		wantErr     bool
@@ -68,8 +69,8 @@ func TestUseCaseLogin(t *testing.T) {
 		{
 			name: "success",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(getTestUser(true), nil)
 				deps.passwordSvc.EXPECT().ComparePassword(gomock.Any(), gomock.Any()).Return(nil)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(at, nil)
@@ -83,8 +84,8 @@ func TestUseCaseLogin(t *testing.T) {
 		{
 			name: "user not found",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(nil, repo.ErrNotFound)
 				return uc
 			},
@@ -93,22 +94,22 @@ func TestUseCaseLogin(t *testing.T) {
 			wantErrMsg:  "user not found",
 		},
 		{
-			name: "user loading failed",
+			name: "failed to get user",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(nil, repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
-			wantErrMsg:  "user loading failed",
+			wantErrMsg:  "failed to get user",
 		},
 		{
 			name: "user is unverified",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(getTestUser(false), nil)
 				return uc
 			},
@@ -119,8 +120,8 @@ func TestUseCaseLogin(t *testing.T) {
 		{
 			name: "user password is invalid",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(getTestUser(true), nil)
 				deps.passwordSvc.EXPECT().ComparePassword(gomock.Any(), gomock.Any()).Return(fmt.Errorf("invalid pwd"))
 				return uc
@@ -130,10 +131,10 @@ func TestUseCaseLogin(t *testing.T) {
 			wantErrMsg:  "user password is invalid",
 		},
 		{
-			name: "generation access token failed",
+			name: "failed to generate access token",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(getTestUser(true), nil)
 				deps.passwordSvc.EXPECT().ComparePassword(gomock.Any(), gomock.Any()).Return(nil)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(nil, fmt.Errorf("Token generation failed"))
@@ -142,28 +143,28 @@ func TestUseCaseLogin(t *testing.T) {
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
-			wantErrMsg:  "generation access token failed",
+			wantErrMsg:  "failed to generate access token",
 		},
 		{
-			name: "generation refresh token failed",
+			name: "failed to generate refresh token",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(getTestUser(true), nil)
 				deps.passwordSvc.EXPECT().ComparePassword(gomock.Any(), gomock.Any()).Return(nil)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(at, nil)
-				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(nil, fmt.Errorf("Token generation failed"))
+				deps.tokenSvc.EXPECT().GenRefreshToken(gomock.Any()).Return(nil, fmt.Errorf("failed to generate token"))
 				return uc
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
-			wantErrMsg:  "generation refresh token failed",
+			wantErrMsg:  "failed to generate refresh token",
 		},
 		{
 			name: "refresh token already exists",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(getTestUser(true), nil)
 				deps.passwordSvc.EXPECT().ComparePassword(gomock.Any(), gomock.Any()).Return(nil)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(at, nil)
@@ -178,8 +179,8 @@ func TestUseCaseLogin(t *testing.T) {
 		{
 			name: "user not found",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(getTestUser(true), nil)
 				deps.passwordSvc.EXPECT().ComparePassword(gomock.Any(), gomock.Any()).Return(nil)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(at, nil)
@@ -194,8 +195,8 @@ func TestUseCaseLogin(t *testing.T) {
 		{
 			name: "failed to create new refresh token",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.userRepo.EXPECT().GetByEmail(ctx, gomock.Any()).Return(getTestUser(true), nil)
 				deps.passwordSvc.EXPECT().ComparePassword(gomock.Any(), gomock.Any()).Return(nil)
 				deps.tokenSvc.EXPECT().GenAccessToken(gomock.Any()).Return(at, nil)

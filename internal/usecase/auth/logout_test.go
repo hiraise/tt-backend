@@ -1,4 +1,4 @@
-package auth
+package auth_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"task-trail/internal/customerrors"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/auth"
 	"task-trail/internal/usecase/dto"
 	"testing"
 	"time"
@@ -34,7 +35,7 @@ func TestUseCaseLogout(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		uc          func(ctrl *gomock.Controller) *UseCase
+		uc          func(ctrl *gomock.Controller) *auth.UseCase
 		args        args
 		wantErr     bool
 		wantErrType customerrors.ErrType
@@ -43,8 +44,8 @@ func TestUseCaseLogout(t *testing.T) {
 		{
 			name: "success",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserID, oldRT.ID, nil)
 				deps.rtRepo.EXPECT().GetByID(ctx, gomock.Any(), gomock.Any()).Return(&oldRT, nil)
 				deps.rtRepo.EXPECT().Revoke(ctx, gomock.Any()).Return(nil)
@@ -55,8 +56,8 @@ func TestUseCaseLogout(t *testing.T) {
 		{
 			name: "invalid refresh token",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(0, "", fmt.Errorf("invalid token"))
 				return uc
 			},
@@ -67,8 +68,8 @@ func TestUseCaseLogout(t *testing.T) {
 		{
 			name: "refresh token not found",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserID, oldRT.ID, nil)
 				deps.rtRepo.EXPECT().GetByID(ctx, gomock.Any(), gomock.Any()).Return(nil, repo.ErrNotFound)
 				return uc
@@ -78,23 +79,23 @@ func TestUseCaseLogout(t *testing.T) {
 			wantErrMsg:  "refresh token not found",
 		},
 		{
-			name: "refresh token loading failed",
+			name: "failed to get refresh token",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserID, oldRT.ID, nil)
 				deps.rtRepo.EXPECT().GetByID(ctx, gomock.Any(), gomock.Any()).Return(nil, repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
-			wantErrMsg:  "refresh token loading failed",
+			wantErrMsg:  "failed to get refresh token",
 		},
 		{
 			name: "refresh token is expired",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserID, oldRT.ID, nil)
 				deps.rtRepo.EXPECT().
@@ -110,8 +111,8 @@ func TestUseCaseLogout(t *testing.T) {
 		{
 			name: "refresh token is revoked, all user tokens was revoked",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserID, oldRT.ID, nil)
 				deps.rtRepo.EXPECT().
@@ -126,10 +127,10 @@ func TestUseCaseLogout(t *testing.T) {
 			wantErrMsg:  "refresh token is revoked, all user tokens was revoked",
 		},
 		{
-			name: "revoke all users refresh tokens failed",
+			name: "failed to revoke all users refresh tokens",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 
 				deps.tokenSvc.EXPECT().VerifyRefreshToken(gomock.Any()).Return(oldRT.UserID, oldRT.ID, nil)
 				deps.rtRepo.EXPECT().
@@ -141,7 +142,7 @@ func TestUseCaseLogout(t *testing.T) {
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
-			wantErrMsg:  "revoke all users refresh tokens failed",
+			wantErrMsg:  "failed to revoke all users refresh tokens",
 		},
 	}
 	for _, tt := range tests {

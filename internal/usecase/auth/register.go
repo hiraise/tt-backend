@@ -12,7 +12,7 @@ func (u *UseCase) Register(ctx context.Context, data *dto.Credentials) error {
 	f := func(ctx context.Context) error {
 		hash, err := u.passwordSvc.HashPassword(data.Password)
 		if err != nil {
-			return u.errHandler.InternalTrouble(err, "password hashing failed")
+			return u.errHandler.InternalTrouble(err, "failed to hash password")
 		}
 		// create user
 		user := &dto.UserCreate{Email: data.Email, PasswordHash: string(hash)}
@@ -30,7 +30,7 @@ func (u *UseCase) Register(ctx context.Context, data *dto.Credentials) error {
 		}
 		// send verification
 		if err := u.notificationRepo.SendVerificationEmail(ctx, data.Email, tokenID); err != nil {
-			return u.errHandler.InternalTrouble(err, "verification email sending failed", "userID", id)
+			return u.errHandler.InternalTrouble(err, "failed to send verification email", "userID", id)
 		}
 		return nil
 	}

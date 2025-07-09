@@ -14,7 +14,7 @@ func (u *UseCase) ResetPassword(ctx context.Context, data *dto.PasswordReset) er
 
 		h, err := u.passwordSvc.HashPassword(data.NewPassword)
 		if err != nil {
-			return u.errHandler.InternalTrouble(err, "password hashing failed")
+			return u.errHandler.InternalTrouble(err, "failed to hash password")
 		}
 
 		if err := u.updateUser(ctx, &dto.UserUpdate{ID: token.UserID, PasswordHash: h}); err != nil {

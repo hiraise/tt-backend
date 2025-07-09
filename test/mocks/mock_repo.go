@@ -527,6 +527,20 @@ func (m *MockProjectRepository) EXPECT() *MockProjectRepositoryMockRecorder {
 	return m.recorder
 }
 
+// AddMembers mocks base method.
+func (m *MockProjectRepository) AddMembers(ctx context.Context, data *dto.ProjectAddMembersDB) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddMembers", ctx, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddMembers indicates an expected call of AddMembers.
+func (mr *MockProjectRepositoryMockRecorder) AddMembers(ctx, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMembers", reflect.TypeOf((*MockProjectRepository)(nil).AddMembers), ctx, data)
+}
+
 // Create mocks base method.
 func (m *MockProjectRepository) Create(ctx context.Context, data *dto.ProjectCreate) (int, error) {
 	m.ctrl.T.Helper()

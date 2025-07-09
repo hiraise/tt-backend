@@ -64,4 +64,5 @@ type ProjectRepository interface {
 	Create(ctx context.Context, data *dto.ProjectCreate) (int, error)
 	GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error)
 	GetOwnedProject(ctx context.Context, projectID int, ownerID int) (*dto.Project, error)
+	AddMembers(ctx context.Context, data *dto.ProjectAddMembersDB) error
 }

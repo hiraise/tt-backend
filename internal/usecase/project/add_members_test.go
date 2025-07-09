@@ -1,4 +1,4 @@
-package project
+package project_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"task-trail/internal/customerrors"
 	"task-trail/internal/repo"
 	"task-trail/internal/usecase/dto"
+	"task-trail/internal/usecase/project"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -35,7 +36,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 	}
 	tests := []struct {
 		name        string
-		uc          func(ctrl *gomock.Controller, args args) *UseCase
+		uc          func(ctrl *gomock.Controller, args args) *project.UseCase
 		args        args
 		wantErr     bool
 		wantErrType customerrors.ErrType
@@ -44,12 +45,23 @@ func TestUseCase_AddMembers(t *testing.T) {
 		{
 			name: "success",
 			args: testArgs,
-			uc: func(ctrl *gomock.Controller, args args) *UseCase {
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
 				// mockTx(args.ctx, deps.txManager)
 				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
+				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(4)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(
+					[]*dto.UserEmailAndID{
+						{ID: 2, Email: "test1@mail.com"},
+						{ID: 3, Email: "test2@mail.com"},
+						{ID: 4, Email: "test3@mail.com"},
+						{ID: 5, Email: "test4@mail.com"},
+					},
+					nil,
+				)
+				deps.projectRepo.EXPECT().AddMembers(args.ctx, gomock.Any()).Return(nil)
 				return uc
 			},
 			wantErr: false,
@@ -57,7 +69,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 		{
 			name: "project not found",
 			args: testArgs,
-			uc: func(ctrl *gomock.Controller, args args) *UseCase {
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
 				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(nil, repo.ErrNotFound)
@@ -68,9 +80,9 @@ func TestUseCase_AddMembers(t *testing.T) {
 			wantErrMsg:  "project not found",
 		},
 		{
-			name: "project loading failed",
+			name: "failed to get project",
 			args: testArgs,
-			uc: func(ctrl *gomock.Controller, args args) *UseCase {
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
 				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(nil, repo.ErrInternal)
@@ -78,12 +90,12 @@ func TestUseCase_AddMembers(t *testing.T) {
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
-			wantErrMsg:  "project loading failed",
+			wantErrMsg:  "failed to get project",
 		},
 		{
 			name: "member already in project",
 			args: testArgs,
-			uc: func(ctrl *gomock.Controller, args args) *UseCase {
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
 				// mockTx(args.ctx, deps.txManager)
@@ -97,9 +109,9 @@ func TestUseCase_AddMembers(t *testing.T) {
 			wantErrMsg:  "member already in project",
 		},
 		{
-			name: "project members loading failed",
+			name: "failed to get project members",
 			args: testArgs,
-			uc: func(ctrl *gomock.Controller, args args) *UseCase {
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
 				// mockTx(args.ctx, deps.txManager)
@@ -109,7 +121,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
-			wantErrMsg:  "project members loading failed",
+			wantErrMsg:  "failed to get project members",
 		},
 	}
 	for _, tt := range tests {

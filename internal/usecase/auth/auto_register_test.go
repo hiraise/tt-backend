@@ -1,4 +1,4 @@
-package auth
+package auth_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"task-trail/internal/customerrors"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/auth"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -30,7 +31,7 @@ func TestUseCaseAutoRegister(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		uc          func(ctrl *gomock.Controller) *UseCase
+		uc          func(ctrl *gomock.Controller) *auth.UseCase
 		args        args
 		wantErr     bool
 		wantErrType customerrors.ErrType
@@ -39,8 +40,8 @@ func TestUseCaseAutoRegister(t *testing.T) {
 		{
 			name: "success",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(1, nil)
 				deps.notificationRepo.EXPECT().SendAutoRegisterEmail(gomock.Any(), gomock.Any()).Return(nil)
@@ -51,8 +52,8 @@ func TestUseCaseAutoRegister(t *testing.T) {
 		{
 			name: "email already taken",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(0, repo.ErrConflict)
 				return uc
@@ -64,8 +65,8 @@ func TestUseCaseAutoRegister(t *testing.T) {
 		{
 			name: "failed to create new user",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(0, repo.ErrInternal)
 				return uc
@@ -75,10 +76,10 @@ func TestUseCaseAutoRegister(t *testing.T) {
 			wantErrMsg:  "failed to create new user",
 		},
 		{
-			name: "email sending failed",
+			name: "failed to send registration email",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(1, nil)
 				deps.notificationRepo.EXPECT().SendAutoRegisterEmail(gomock.Any(), testEmail).Return(fmt.Errorf("failed send notification"))
@@ -86,7 +87,7 @@ func TestUseCaseAutoRegister(t *testing.T) {
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
-			wantErrMsg:  "auto register email sending failed",
+			wantErrMsg:  "failed to send registration email",
 		},
 	}
 	for _, tt := range tests {

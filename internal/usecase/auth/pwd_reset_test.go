@@ -1,10 +1,11 @@
-package auth
+package auth_test
 
 import (
 	"context"
 	"errors"
 	"task-trail/internal/customerrors"
 	"task-trail/internal/repo"
+	"task-trail/internal/usecase/auth"
 	"task-trail/internal/usecase/dto"
 	"testing"
 	"time"
@@ -38,7 +39,7 @@ func TestUseCaseResetPassword(t *testing.T) {
 	}
 	tests := []struct {
 		name        string
-		uc          func(ctrl *gomock.Controller) *UseCase
+		uc          func(ctrl *gomock.Controller) *auth.UseCase
 		args        args
 		wantErr     bool
 		wantErrType customerrors.ErrType
@@ -47,8 +48,8 @@ func TestUseCaseResetPassword(t *testing.T) {
 		{
 			name: "success",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				mockHashPwd(deps.passwordSvc, false)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
@@ -61,8 +62,8 @@ func TestUseCaseResetPassword(t *testing.T) {
 		{
 			name: "email token not found",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				mockHashPwd(deps.passwordSvc, false)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
@@ -76,10 +77,10 @@ func TestUseCaseResetPassword(t *testing.T) {
 			wantErrMsg:  "email token not found",
 		},
 		{
-			name: "email token update failed",
+			name: "failed to update email token",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				mockHashPwd(deps.passwordSvc, false)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
@@ -90,13 +91,13 @@ func TestUseCaseResetPassword(t *testing.T) {
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
-			wantErrMsg:  "email token update failed",
+			wantErrMsg:  "failed to update email token",
 		},
 		{
 			name: "user not found",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				mockHashPwd(deps.passwordSvc, false)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
@@ -108,10 +109,10 @@ func TestUseCaseResetPassword(t *testing.T) {
 			wantErrMsg:  "user not found",
 		},
 		{
-			name: "",
+			name: "failed to update user",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				mockHashPwd(deps.passwordSvc, false)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
@@ -120,13 +121,13 @@ func TestUseCaseResetPassword(t *testing.T) {
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
-			wantErrMsg:  "user update failed",
+			wantErrMsg:  "failed to update user",
 		},
 		{
 			name: "email token is expired",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				expiredToken := validToken
 				expiredToken.ExpiredAt = time.Now().Add(time.Second * -1)
@@ -140,9 +141,9 @@ func TestUseCaseResetPassword(t *testing.T) {
 		{
 			name: "email token already used",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
 				now := time.Now()
-				uc, deps := mockUseCase(ctrl)
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				usedToken := validToken
 				usedToken.UsedAt = &now
@@ -156,8 +157,8 @@ func TestUseCaseResetPassword(t *testing.T) {
 		{
 			name: "email token not found",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(nil, repo.ErrNotFound)
 				return uc
@@ -169,8 +170,8 @@ func TestUseCaseResetPassword(t *testing.T) {
 		{
 			name: "failed to get email token",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(nil, repo.ErrInternal)
 				return uc
@@ -180,10 +181,10 @@ func TestUseCaseResetPassword(t *testing.T) {
 			wantErrMsg:  "failed to get email token",
 		},
 		{
-			name: "password hashing failed",
+			name: "failed to hash password",
 			args: a,
-			uc: func(ctrl *gomock.Controller) *UseCase {
-				uc, deps := mockUseCase(ctrl)
+			uc: func(ctrl *gomock.Controller) *auth.UseCase {
+				uc, deps := MockUseCase(ctrl)
 				mockTx(ctx, deps.txManager)
 				deps.etRepo.EXPECT().GetByID(ctx, gomock.Any()).Return(&validToken, nil)
 				mockHashPwd(deps.passwordSvc, true)
@@ -191,7 +192,7 @@ func TestUseCaseResetPassword(t *testing.T) {
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
-			wantErrMsg:  "password hashing failed",
+			wantErrMsg:  "failed to hash password",
 		},
 	}
 	for _, tt := range tests {

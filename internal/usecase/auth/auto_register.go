@@ -11,7 +11,7 @@ func (u *UseCase) AutoRegister(ctx context.Context, email string) error {
 
 	f := func(ctx context.Context) error {
 		// create user
-		user := &dto.UserCreate{Email: email, PasswordHash: "", IsVerified: true}
+		user := &dto.UserCreate{Email: email, PasswordHash: " ", IsVerified: true}
 		_, err := u.userRepo.Create(ctx, user)
 		if err != nil {
 			if errors.Is(err, repo.ErrConflict) {
@@ -21,7 +21,7 @@ func (u *UseCase) AutoRegister(ctx context.Context, email string) error {
 		}
 
 		if err := u.notificationRepo.SendAutoRegisterEmail(ctx, email); err != nil {
-			return u.errHandler.InternalTrouble(err, "auto register email sending failed", "email", email)
+			return u.errHandler.InternalTrouble(err, "failed to send registration email", "email", email)
 		}
 		return nil
 	}

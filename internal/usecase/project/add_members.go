@@ -3,7 +3,6 @@ package project
 import (
 	"context"
 	"errors"
-	"fmt"
 	"slices"
 	"task-trail/internal/repo"
 	"task-trail/internal/usecase/dto"
@@ -18,13 +17,38 @@ func (u *UseCase) AddMembers(ctx context.Context, data *dto.ProjectAddMembers) e
 	if err := u.verifyNewMembers(project.Members, data.MemberEmails); err != nil {
 		return err
 	}
-	newEmails, err := u.getUnregisteredEmails(ctx, data.MemberEmails)
 
+	newEmails, err := u.getUnregisteredEmails(ctx, data.MemberEmails)
 	if err != nil {
-		return u.errHandler.InternalTrouble(err, "project members loading failed", "projectID", data.ProjectID)
+		return u.errHandler.InternalTrouble(err, "failed to get project members", "projectID", data.ProjectID)
 	}
-	fmt.Println(newEmails, project)
-	return nil
+
+	f := func(ctx context.Context) error {
+		if len(newEmails) > 0 {
+			if err := u.registerNewUsers(ctx, newEmails); err != nil {
+				return err
+			}
+		}
+
+		memberIDs, err := u.getNewMembersIds(ctx, data.MemberEmails)
+		if err != nil {
+			return err
+		}
+
+		if err := u.projectRepo.AddMembers(ctx, &dto.ProjectAddMembersDB{ProjectID: data.ProjectID, MemberIDs: memberIDs}); err != nil {
+			return u.errHandler.InternalTrouble(
+				err,
+				"failed to add new members to the project",
+				"projectID", data.ProjectID,
+				"ownerID", data.OwnerID,
+				"membersIDs", memberIDs,
+			)
+		}
+		
+		return nil
+	}
+	
+	return u.txManager.DoWithTx(ctx, f)
 }
 
 func (u *UseCase) getOwnedProject(ctx context.Context, projectID int, ownerID int) (*dto.Project, error) {
@@ -33,7 +57,7 @@ func (u *UseCase) getOwnedProject(ctx context.Context, projectID int, ownerID in
 		if errors.Is(err, repo.ErrNotFound) {
 			return nil, u.errHandler.NotFound(err, "project not found", "projectID", projectID, "ownerID", ownerID)
 		}
-		return nil, u.errHandler.InternalTrouble(err, "project loading failed", "projectID", projectID, "ownerID", ownerID)
+		return nil, u.errHandler.InternalTrouble(err, "failed to get project", "projectID", projectID, "ownerID", ownerID)
 	}
 	return project, nil
 }
@@ -63,4 +87,28 @@ func (u *UseCase) getUnregisteredEmails(ctx context.Context, newMembers []string
 		}
 	}
 	return newUsers, nil
+}
+
+func (u *UseCase) registerNewUsers(ctx context.Context, newMembers []string) error {
+	for _, email := range newMembers {
+		if err := u.authUC.AutoRegister(ctx, email); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (u *UseCase) getNewMembersIds(ctx context.Context, newMembers []string) ([]int, error) {
+	users, err := u.userRepo.GetIdsByEmails(ctx, newMembers)
+	if err != nil {
+		return nil, u.errHandler.InternalTrouble(err, "failed to get new members")
+	}
+	if len(users) != len(newMembers) {
+		return nil, u.errHandler.InternalTrouble(err, "mismatch between found user IDs and new members count")
+	}
+	ids := make([]int, len(users))
+	for i, user := range users {
+		ids[i] = user.ID
+	}
+	return ids, nil
 }

@@ -13,7 +13,7 @@ func (u *UseCase) Login(ctx context.Context, data *dto.Credentials) (*dto.LoginR
 		if errors.Is(err, repo.ErrNotFound) {
 			return nil, u.errHandler.InvalidCredentials(err, "user not found", "email", data.Email)
 		}
-		return nil, u.errHandler.InternalTrouble(err, "user loading failed", "email", data.Email)
+		return nil, u.errHandler.InternalTrouble(err, "failed to get user", "email", data.Email)
 
 	}
 	if user.VerifiedAt == nil {

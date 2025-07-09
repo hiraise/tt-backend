@@ -16,14 +16,14 @@ func (u *UseCase) ChangePassword(ctx context.Context, data *dto.PasswordChange) 
 		if errors.Is(err, repo.ErrNotFound) {
 			return u.errHandler.BadRequest(err, "user not found", "userID", data.UserID)
 		}
-		return u.errHandler.InternalTrouble(err, "password change failed", "userID", data.UserID)
+		return u.errHandler.InternalTrouble(err, "failed to password change", "userID", data.UserID)
 	}
 	if err := u.passwordSvc.ComparePassword(data.OldPassword, user.PasswordHash); err != nil {
 		return u.errHandler.BadRequest(err, "incorrect old password", "userID", data.UserID)
 	}
 	h, err := u.passwordSvc.HashPassword(data.NewPassword)
 	if err != nil {
-		return u.errHandler.InternalTrouble(err, "hashing new password failed", "userID", data.UserID)
+		return u.errHandler.InternalTrouble(err, "failed to hash password", "userID", data.UserID)
 	}
 	if err := u.updateUser(ctx, &dto.UserUpdate{PasswordHash: h, ID: user.ID}); err != nil {
 		return err

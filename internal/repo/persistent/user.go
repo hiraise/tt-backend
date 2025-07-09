@@ -6,6 +6,7 @@ import (
 	"strings"
 	"task-trail/internal/repo"
 	"task-trail/internal/usecase/dto"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -22,17 +23,18 @@ func (r *PgUserRepository) Create(ctx context.Context, dto *dto.UserCreate) (int
 	substring := `
 		(email, password_hash) 
 		VALUES ($1, $2)`
+	var args []any = []any{dto.Email, dto.PasswordHash}
 	if dto.IsVerified {
 		substring = `
 			(email, password_hash, verified_at) 
 			VALUES ($1, $2, $3)`
+		args = append(args, time.Now())
 	}
-
 	var id int
 	err := r.getDb(ctx).QueryRow(
 		ctx,
 		fmt.Sprintf(`INSERT INTO users %s RETURNING id;`, substring),
-		dto.Email, dto.PasswordHash,
+		args...,
 	).Scan(&id)
 	if err != nil {
 		return 0, r.handleError(err)
