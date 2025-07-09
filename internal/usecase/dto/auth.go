@@ -10,6 +10,7 @@ type Credentials struct {
 type UserCreate struct {
 	Email        string
 	PasswordHash string
+	IsVerified   bool
 }
 
 type PasswordChange struct {

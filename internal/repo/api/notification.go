@@ -50,6 +50,14 @@ func (r *SmtpNotificationRepo) SendResetPasswordEmail(ctx context.Context, email
 	return r.send(msg)
 }
 
+func (r *SmtpNotificationRepo) SendAutoRegisterEmail(ctx context.Context, email string) error {
+	msg := smtp.Message{
+		Recipients: []string{email},
+		Subject:    "Welcome to Task Trail",
+		Text:       "Welcome! You was automaticly registered. To enter in app, use reset password form on main page",
+	}
+	return r.send(msg)
+}
 func (r *SmtpNotificationRepo) send(msg smtp.Message) error {
 	eventID := r.uuidGenerator.Generate()
 	if err := r.sender.Send(msg, eventID); err != nil {

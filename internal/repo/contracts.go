@@ -27,6 +27,7 @@ type UserRepository interface {
 	// Update: Updates user fields based on the provided UserUpdate DTO. The DTO must include the user's ID;
 	// other fields are optional and only those provided will be updated.
 	Update(ctx context.Context, dto *dto.UserUpdate) error
+	GetIdsByEmails(ctx context.Context, emails []string) ([]*dto.UserEmailAndID, error)
 }
 type VerificationRepository interface {
 	Create(ctx context.Context, userID int, code int) error
@@ -51,8 +52,16 @@ type EmailTokenRepository interface {
 type NotificationRepository interface {
 	SendVerificationEmail(ctx context.Context, email string, token string) error
 	SendResetPasswordEmail(ctx context.Context, email string, token string) error
+	SendAutoRegisterEmail(ctx context.Context, email string) error
 }
 
 type FileRepository interface {
 	Create(ctx context.Context, file *dto.FileCreate) error
+}
+
+type ProjectRepository interface {
+	// Create method try to create new project and return project id if ok or error if something went wrong
+	Create(ctx context.Context, data *dto.ProjectCreate) (int, error)
+	GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error)
+	GetOwnedProject(ctx context.Context, projectID int, ownerID int) (*dto.Project, error)
 }

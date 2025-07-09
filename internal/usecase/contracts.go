@@ -14,6 +14,7 @@ import (
 type Authentication interface {
 	Login(ctx context.Context, data *dto.Credentials) (*dto.LoginRes, error)
 	Register(ctx context.Context, data *dto.Credentials) error
+	AutoRegister(ctx context.Context, email string) error
 	Logout(ctx context.Context, refreshToken string) error
 	Refresh(ctx context.Context, refreshToken string) (*dto.RefreshRes, error)
 	Verify(ctx context.Context, tokenID string) error
@@ -29,7 +30,7 @@ type Authentication interface {
 type User interface {
 	UpdateAvatar(ctx context.Context, data *dto.FileUpload) (*dto.UserAvatar, error)
 	UpdateByID(ctx context.Context, data *dto.UserUpdate) (*dto.CurrentUser, error)
-	GetByID(ctx context.Context, ID int) (*dto.CurrentUser, error)
+	GetCurrentByID(ctx context.Context, ID int) (*dto.CurrentUser, error)
 }
 
 // File defines the contract for file storage operations.
@@ -37,4 +38,10 @@ type User interface {
 // The Save method returns the identifier of the uploaded file, or an error if the operation fails.
 type File interface {
 	Save(ctx context.Context, data *dto.FileUpload) (string, error)
+}
+
+type Project interface {
+	Create(ctx context.Context, data *dto.ProjectCreate) (int, error)
+	GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error)
+	AddMembers(ctx context.Context, data *dto.ProjectAddMembers) error
 }

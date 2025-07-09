@@ -35,3 +35,8 @@ type CurrentUser struct {
 type UserAvatar struct {
 	AvatarURL string
 }
+
+type UserEmailAndID struct {
+	ID    int
+	Email string
+}

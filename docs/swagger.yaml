@@ -38,6 +38,25 @@ definitions:
     required:
     - email
     type: object
+  request.projectAddMembersReq:
+    properties:
+      emails:
+        items:
+          type: string
+        type: array
+    required:
+    - emails
+    type: object
+  request.projectCreateReq:
+    properties:
+      description:
+        type: string
+      name:
+        maxLength: 254
+        type: string
+    required:
+    - name
+    type: object
   request.resetPasswordReq:
     properties:
       password:
@@ -314,6 +333,97 @@ paths:
       summary: verify user account
       tags:
       - /v1/auth
+  /v1/projects:
+    get:
+      consumes:
+      - application/json
+      description: '...'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      security:
+      - BearerAuth: []
+      summary: return projects where user is owner or member
+      tags:
+      - /v1/project
+    post:
+      consumes:
+      - application/json
+      description: '...'
+      parameters:
+      - description: project data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.projectCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: invalid request body
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      security:
+      - BearerAuth: []
+      summary: create new project
+      tags:
+      - /v1/project
+  /v1/projects/{id}/members:
+    post:
+      consumes:
+      - application/json
+      description: '...'
+      parameters:
+      - description: project id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: emails
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.projectAddMembersReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "404":
+          description: user not found
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      security:
+      - BearerAuth: []
+      summary: add new members to project
+      tags:
+      - /v1/project
   /v1/users/{id}:
     get:
       consumes:

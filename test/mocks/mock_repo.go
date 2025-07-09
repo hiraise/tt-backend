@@ -139,6 +139,21 @@ func (mr *MockUserRepositoryMockRecorder) GetByID(ctx, ID any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockUserRepository)(nil).GetByID), ctx, ID)
 }
 
+// GetIdsByEmails mocks base method.
+func (m *MockUserRepository) GetIdsByEmails(ctx context.Context, emails []string) ([]*dto.UserEmailAndID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIdsByEmails", ctx, emails)
+	ret0, _ := ret[0].([]*dto.UserEmailAndID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIdsByEmails indicates an expected call of GetIdsByEmails.
+func (mr *MockUserRepositoryMockRecorder) GetIdsByEmails(ctx, emails any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIdsByEmails", reflect.TypeOf((*MockUserRepository)(nil).GetIdsByEmails), ctx, emails)
+}
+
 // Update mocks base method.
 func (m *MockUserRepository) Update(ctx context.Context, arg1 *dto.UserUpdate) error {
 	m.ctrl.T.Helper()
@@ -408,6 +423,20 @@ func (m *MockNotificationRepository) EXPECT() *MockNotificationRepositoryMockRec
 	return m.recorder
 }
 
+// SendAutoRegisterEmail mocks base method.
+func (m *MockNotificationRepository) SendAutoRegisterEmail(ctx context.Context, email string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendAutoRegisterEmail", ctx, email)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendAutoRegisterEmail indicates an expected call of SendAutoRegisterEmail.
+func (mr *MockNotificationRepositoryMockRecorder) SendAutoRegisterEmail(ctx, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAutoRegisterEmail", reflect.TypeOf((*MockNotificationRepository)(nil).SendAutoRegisterEmail), ctx, email)
+}
+
 // SendResetPasswordEmail mocks base method.
 func (m *MockNotificationRepository) SendResetPasswordEmail(ctx context.Context, email, token string) error {
 	m.ctrl.T.Helper()
@@ -472,4 +501,73 @@ func (m *MockFileRepository) Create(ctx context.Context, file *dto.FileCreate) e
 func (mr *MockFileRepositoryMockRecorder) Create(ctx, file any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockFileRepository)(nil).Create), ctx, file)
+}
+
+// MockProjectRepository is a mock of ProjectRepository interface.
+type MockProjectRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockProjectRepositoryMockRecorder
+	isgomock struct{}
+}
+
+// MockProjectRepositoryMockRecorder is the mock recorder for MockProjectRepository.
+type MockProjectRepositoryMockRecorder struct {
+	mock *MockProjectRepository
+}
+
+// NewMockProjectRepository creates a new mock instance.
+func NewMockProjectRepository(ctrl *gomock.Controller) *MockProjectRepository {
+	mock := &MockProjectRepository{ctrl: ctrl}
+	mock.recorder = &MockProjectRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockProjectRepository) EXPECT() *MockProjectRepositoryMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockProjectRepository) Create(ctx context.Context, data *dto.ProjectCreate) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, data)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockProjectRepositoryMockRecorder) Create(ctx, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockProjectRepository)(nil).Create), ctx, data)
+}
+
+// GetList mocks base method.
+func (m *MockProjectRepository) GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetList", ctx, data)
+	ret0, _ := ret[0].([]*dto.ProjectRes)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetList indicates an expected call of GetList.
+func (mr *MockProjectRepositoryMockRecorder) GetList(ctx, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*MockProjectRepository)(nil).GetList), ctx, data)
+}
+
+// GetOwnedProject mocks base method.
+func (m *MockProjectRepository) GetOwnedProject(ctx context.Context, projectID, ownerID int) (*dto.Project, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOwnedProject", ctx, projectID, ownerID)
+	ret0, _ := ret[0].(*dto.Project)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOwnedProject indicates an expected call of GetOwnedProject.
+func (mr *MockProjectRepositoryMockRecorder) GetOwnedProject(ctx, projectID, ownerID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOwnedProject", reflect.TypeOf((*MockProjectRepository)(nil).GetOwnedProject), ctx, projectID, ownerID)
 }

@@ -19,13 +19,21 @@ func NewUserRepo(db *pgxpool.Pool) *PgUserRepository {
 }
 
 func (r *PgUserRepository) Create(ctx context.Context, dto *dto.UserCreate) (int, error) {
-	query := `
-		INSERT INTO users 
+	substring := `
 		(email, password_hash) 
-		VALUES ($1, $2)
-		RETURNING id;`
+		VALUES ($1, $2)`
+	if dto.IsVerified {
+		substring = `
+			(email, password_hash, verified_at) 
+			VALUES ($1, $2, $3)`
+	}
+
 	var id int
-	err := r.getDb(ctx).QueryRow(ctx, query, dto.Email, dto.PasswordHash).Scan(&id)
+	err := r.getDb(ctx).QueryRow(
+		ctx,
+		fmt.Sprintf(`INSERT INTO users %s RETURNING id;`, substring),
+		dto.Email, dto.PasswordHash,
+	).Scan(&id)
 	if err != nil {
 		return 0, r.handleError(err)
 	}
@@ -108,4 +116,32 @@ func (r *PgUserRepository) Update(ctx context.Context, dto *dto.UserUpdate) erro
 		return repo.ErrNotFound
 	}
 	return nil
+}
+
+func (r *PgUserRepository) GetIdsByEmails(ctx context.Context, emails []string) ([]*dto.UserEmailAndID, error) {
+	var items []string
+	values := make([]any, 0, len(emails)+1)
+	for i, email := range emails {
+		values = append(values, email)
+		items = append(items, fmt.Sprintf("$%d", i+1))
+	}
+	query := fmt.Sprintf("SELECT id, email FROM users WHERE email IN (%s);", strings.Join(items, ","))
+	rows, err := r.getDb(ctx).Query(ctx, query, values...)
+	if err != nil {
+		return nil, r.handleError(err)
+	}
+	defer rows.Close()
+
+	var retVal []*dto.UserEmailAndID
+	for rows.Next() {
+		var item dto.UserEmailAndID
+		if err := rows.Scan(&item.ID, &item.Email); err != nil {
+			return nil, r.handleError(err)
+		}
+		retVal = append(retVal, &item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, r.handleError(err)
+	}
+	return retVal, nil
 }
