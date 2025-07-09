@@ -48,7 +48,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
-				// mockTx(args.ctx, deps.txManager)
+				mockTx(args.ctx, deps.txManager)
 				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
 				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(4)

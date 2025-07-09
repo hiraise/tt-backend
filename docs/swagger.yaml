@@ -1,10 +1,4 @@
 definitions:
-  request.UpdateReq:
-    properties:
-      username:
-        maxLength: 100
-        type: string
-    type: object
   request.changePasswordReq:
     properties:
       newPassword:
@@ -69,6 +63,12 @@ definitions:
     - password
     - token
     type: object
+  request.updateReq:
+    properties:
+      username:
+        maxLength: 100
+        type: string
+    type: object
   request.verifyReq:
     properties:
       token:
@@ -83,6 +83,38 @@ definitions:
         type: object
       msg:
         type: string
+    type: object
+  response.ProjectRes:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      tasksCount:
+        type: integer
+    type: object
+  response.avatarRes:
+    properties:
+      avatarUrl:
+        type: string
+    type: object
+  response.currentRes:
+    properties:
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      username:
+        type: string
+    type: object
+  response.projectCreateRes:
+    properties:
+      id:
+        type: integer
     type: object
 info:
   contact:
@@ -343,6 +375,10 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.ProjectRes'
+            type: array
         "401":
           description: authentication required
           schema:
@@ -372,6 +408,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/response.projectCreateRes'
         "400":
           description: invalid request body
           schema:
@@ -455,6 +493,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/response.currentRes'
       security:
       - BearerAuth: []
       summary: return current user
@@ -470,12 +510,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/request.UpdateReq'
+          $ref: '#/definitions/request.updateReq'
       produces:
       - application/json
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/response.currentRes'
         "400":
           description: invalid request body
           schema:
@@ -509,6 +551,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/response.avatarRes'
         "401":
           description: authentication required
           schema:

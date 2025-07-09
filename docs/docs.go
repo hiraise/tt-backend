@@ -417,7 +417,13 @@ const docTemplate = `{
                 "summary": "return projects where user is owner or member",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.ProjectRes"
+                            }
+                        }
                     },
                     "401": {
                         "description": "authentication required",
@@ -463,7 +469,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.projectCreateRes"
+                        }
                     },
                     "400": {
                         "description": "invalid request body",
@@ -561,7 +570,10 @@ const docTemplate = `{
                 "summary": "return current user",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.currentRes"
+                        }
                     }
                 }
             },
@@ -589,13 +601,16 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UpdateReq"
+                            "$ref": "#/definitions/request.updateReq"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.currentRes"
+                        }
                     },
                     "400": {
                         "description": "invalid request body",
@@ -647,7 +662,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.avatarRes"
+                        }
                     },
                     "401": {
                         "description": "authentication required",
@@ -694,15 +712,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "request.UpdateReq": {
-            "type": "object",
-            "properties": {
-                "username": {
-                    "type": "string",
-                    "maxLength": 100
-                }
-            }
-        },
         "request.changePasswordReq": {
             "type": "object",
             "required": [
@@ -796,6 +805,15 @@ const docTemplate = `{
                 }
             }
         },
+        "request.updateReq": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
         "request.verifyReq": {
             "type": "object",
             "required": [
@@ -816,6 +834,56 @@ const docTemplate = `{
                 },
                 "msg": {
                     "type": "string"
+                }
+            }
+        },
+        "response.ProjectRes": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tasksCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.avatarRes": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.currentRes": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.projectCreateRes": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
                 }
             }
         }

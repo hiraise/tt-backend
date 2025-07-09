@@ -26,7 +26,7 @@ type projectRoutes struct {
 // @Accept 		json
 // @Produce 	json
 // @Param 		body body request.projectCreateReq true "project data"
-// @Success 	200
+// @Success 	200 {object} response.projectCreateRes
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Failure		404 {object} response.ErrAPI "user not found"
 // @Failure		401 {object} response.ErrAPI "authentication required"
@@ -43,7 +43,7 @@ func (r *projectRoutes) create(c *gin.Context) {
 		_ = c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, id)
+	c.JSON(http.StatusOK, response.NewProjectCreateResFromDTO(id))
 }
 
 // @Summary 	return projects where user is owner or member
@@ -52,7 +52,7 @@ func (r *projectRoutes) create(c *gin.Context) {
 // @Tags 		/v1/project
 // @Accept 		json
 // @Produce 	json
-// @Success 	200
+// @Success 	200 {array} response.ProjectRes
 // @Failure		404 {object} response.ErrAPI "user not found"
 // @Failure		401 {object} response.ErrAPI "authentication required"
 // @Router 		/v1/projects [get]

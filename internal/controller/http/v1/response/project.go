@@ -9,6 +9,10 @@ type ProjectRes struct {
 	TaskCount   int    `json:"tasksCount"`
 }
 
+type projectCreateRes struct {
+	ID int `json:"id"`
+}
+
 func NewProjectResFromDTO(data *dto.ProjectRes) *ProjectRes {
 	return &ProjectRes{
 		ID:          data.ID,
@@ -24,4 +28,8 @@ func NewProjectResFromDTOBatch(data []*dto.ProjectRes) []*ProjectRes {
 		retVal = append(retVal, NewProjectResFromDTO(v))
 	}
 	return retVal
+}
+
+func NewProjectCreateResFromDTO(projectID int) *projectCreateRes {
+	return &projectCreateRes{ID: projectID}
 }

@@ -40,17 +40,17 @@ func (r *usersRoutes) getUser(c *gin.Context) {
 // @Tags 		/v1/users
 // @Accept 		json
 // @Produce 	json
-// @Success 	200
+// @Success 	200 {object} response.currentRes
 // @Router 		/v1/users/me [get]
 func (r *usersRoutes) getMe(c *gin.Context) {
 	userID := utils.Must(r.contextmanager.GetUserID(c))
 
-	u, err := r.u.GetCurrentByID(c, userID)
+	res, err := r.u.GetCurrentByID(c, userID)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, response.NewCurrentResFromDTO(u))
+	c.JSON(http.StatusOK, response.NewCurrentResFromDTO(res))
 }
 
 // @Summary 	upload new avatar
@@ -60,7 +60,7 @@ func (r *usersRoutes) getMe(c *gin.Context) {
 // @Accept 		json
 // @Produce 	json
 // @Param 		file formData file true "new file"
-// @Success 	200
+// @Success 	200 {object} response.avatarRes
 // @Failure		401 {object} response.ErrAPI "authentication required"
 // @Router 		/v1/users/me/avatar [patch]
 func (r *usersRoutes) updateAvatar(c *gin.Context) {
@@ -86,29 +86,25 @@ func (r *usersRoutes) updateAvatar(c *gin.Context) {
 // @Tags 		/v1/users
 // @Accept 		json
 // @Produce 	json
-// @Param 		body body request.UpdateReq true "user data"
-// @Success 	200
+// @Param 		body body request.updateReq true "user data"
+// @Success 	200 {object} response.currentRes
 // @Failure		400 {object} response.ErrAPI "invalid request body"
 // @Failure		404 {object} response.ErrAPI "user not found"
 // @Failure		401 {object} response.ErrAPI "authentication required"
 // @Router 		/v1/users/me [patch]
 func (r *usersRoutes) updateMe(c *gin.Context) {
-	// parse body
-	var body request.UpdateReq
-	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
-		_ = c.Error(r.errHandler.Validation(err))
-		return
-	}
-	// cast parsed body to entity
 	userID := utils.Must(r.contextmanager.GetUserID(c))
-	data := body.ToDTO(userID)
-
-	u, err := r.u.UpdateByID(c, data)
+	data, err := request.BindUserUpdateDTO(c, userID)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, response.NewCurrentResFromDTO(u))
+	res, err := r.u.UpdateByID(c, data)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, response.NewCurrentResFromDTO(res))
 }
 func NewUserRouter(
 	router *gin.RouterGroup,

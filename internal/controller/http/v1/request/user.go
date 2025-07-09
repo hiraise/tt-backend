@@ -1,13 +1,20 @@
 package request
 
-import "task-trail/internal/usecase/dto"
+import (
+	"task-trail/internal/usecase/dto"
 
-// UpdateReq represents the request payload for updating a user's information.
-type UpdateReq struct {
+	"github.com/gin-gonic/gin"
+)
+
+// updateReq represents the request payload for updating a user's information.
+type updateReq struct {
 	Username string `json:"username" binding:"max=100"`
 }
 
-// FormAPI converts the UpdateReq struct into an entity.User instance
-func (u *UpdateReq) ToDTO(userID int) *dto.UserUpdate {
-	return &dto.UserUpdate{ID: userID, Username: u.Username}
+func BindUserUpdateDTO(c *gin.Context, userID int) (*dto.UserUpdate, error) {
+	body, err := validate[updateReq](c)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.UserUpdate{ID: userID, Username: body.Username}, nil
 }

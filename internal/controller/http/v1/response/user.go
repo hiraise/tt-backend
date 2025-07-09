@@ -4,23 +4,23 @@ import (
 	"task-trail/internal/usecase/dto"
 )
 
-type AvatarRes struct {
+type avatarRes struct {
 	AvatarUrl string `json:"avatarUrl"`
 }
 
-func NewAvatarResFromDTO(data *dto.UserAvatar) *AvatarRes {
-	return &AvatarRes{AvatarUrl: data.AvatarURL}
+func NewAvatarResFromDTO(data *dto.UserAvatar) *avatarRes {
+	return &avatarRes{AvatarUrl: data.AvatarURL}
 }
 
-type CurrentRes struct {
+type currentRes struct {
 	ID        int     `json:"id"`
 	Email     string  `json:"email"`
 	Username  *string `json:"username"`
 	AvatarUrl *string `json:"avatarUrl"`
 }
 
-func NewCurrentResFromDTO(data *dto.CurrentUser) *CurrentRes {
-	return &CurrentRes{
+func NewCurrentResFromDTO(data *dto.CurrentUser) *currentRes {
+	return &currentRes{
 		ID:        data.ID,
 		Username:  data.Username,
 		Email:     data.Email,
