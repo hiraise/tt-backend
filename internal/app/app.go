@@ -7,7 +7,9 @@ import (
 	"task-trail/internal/controller/http/middleware"
 	"task-trail/internal/customerrors"
 	"task-trail/internal/pkg/contextmanager"
+	slogger "task-trail/internal/pkg/logger/slog"
 	"task-trail/internal/pkg/password/bcrypt"
+	"task-trail/internal/pkg/postgres"
 	"task-trail/internal/pkg/smtp/gomail"
 	"task-trail/internal/pkg/storage/s3"
 	"task-trail/internal/pkg/token/jwt"
@@ -17,10 +19,8 @@ import (
 	"task-trail/internal/tasks"
 	authuc "task-trail/internal/usecase/auth"
 	fileuc "task-trail/internal/usecase/file"
+	projectuc "task-trail/internal/usecase/project"
 	useruc "task-trail/internal/usecase/user"
-
-	slogger "task-trail/internal/pkg/logger/slog"
-	"task-trail/internal/pkg/postgres"
 
 	"github.com/gin-gonic/gin"
 )
@@ -65,6 +65,7 @@ func Run(cfg *config.Config) {
 	}
 	txManager := persistent.NewPgTxManager(pg.Pool)
 	userRepo := persistent.NewUserRepo(pg.Pool)
+	projectRepo := persistent.NewProjectRepo(pg.Pool)
 	tokenRepo := persistent.NewRefreshTokenRepo(pg.Pool)
 	notificationRepo := api.NewSmtpNotificationRepo(smtp, logger, uuidGenerator, cfg.Frontend.VerifyURL, cfg.Frontend.ResetPasswordURL)
 	emailTokenRepo := persistent.NewEmailTokenRepo(pg.Pool)
@@ -81,6 +82,7 @@ func Run(cfg *config.Config) {
 		errHandler,
 		uuidGenerator,
 	)
+	projectUC := projectuc.New(txManager, projectRepo, userRepo, errHandler)
 	authUC := authuc.New(
 		errHandler,
 		txManager,
@@ -106,7 +108,7 @@ func Run(cfg *config.Config) {
 	httpServer.Use(logMW)
 	httpServer.Use(recoveryMW)
 	httpServer.Use(errorMW)
-	http.NewRouter(httpServer, errHandler, contextm, userUC, authUC, storage, authMW, cfg)
+	http.NewRouter(httpServer, errHandler, contextm, userUC, projectUC, authUC, storage, authMW, cfg)
 	tasks.CleanupRefreshTokens(tokenRepo, logger)
 	tasks.CleanupEmailTokens(emailTokenRepo, logger)
 	if err := httpServer.Run(); err != nil {
