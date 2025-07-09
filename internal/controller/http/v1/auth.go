@@ -254,12 +254,12 @@ func (r *authRoutes) check(c *gin.Context) {
 }
 
 func NewAuthRouter(
-	contextmanager contextmanager.Gin,
 	router *gin.RouterGroup,
 	u usecase.Authentication,
-	errHandler customerrors.ErrorHandler,
-	cfg *config.Config,
 	authMW gin.HandlerFunc,
+	errHandler customerrors.ErrorHandler,
+	contextmanager contextmanager.Gin,
+	cfg *config.Config,
 ) {
 	r := new(contextmanager, errHandler, u, cfg)
 	g := router.Group("/auth")
