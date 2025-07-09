@@ -88,9 +88,9 @@ func (u *UseCase) UpdateByID(ctx context.Context, data *dto.UserUpdate) (*dto.Cu
 		}
 		return nil, u.errHandler.InternalTrouble(err, "user update failed", "userID", data.ID)
 	}
-	return u.GetByID(ctx, data.ID)
+	return u.GetCurrentByID(ctx, data.ID)
 }
-func (u *UseCase) GetByID(ctx context.Context, ID int) (*dto.CurrentUser, error) {
+func (u *UseCase) GetCurrentByID(ctx context.Context, ID int) (*dto.CurrentUser, error) {
 	user, err := u.userRepo.GetByID(ctx, ID)
 	if err != nil {
 		if errors.Is(err, repo.ErrNotFound) {

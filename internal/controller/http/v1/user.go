@@ -45,7 +45,7 @@ func (r *usersRoutes) getUser(c *gin.Context) {
 func (r *usersRoutes) getMe(c *gin.Context) {
 	userID := utils.Must(r.contextmanager.GetUserID(c))
 
-	u, err := r.u.GetByID(c, userID)
+	u, err := r.u.GetCurrentByID(c, userID)
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -64,7 +64,6 @@ func (r *usersRoutes) getMe(c *gin.Context) {
 // @Failure		401 {object} response.ErrAPI "authentication required"
 // @Router 		/v1/users/me/avatar [patch]
 func (r *usersRoutes) updateAvatar(c *gin.Context) {
-	
 	userID := utils.Must(r.contextmanager.GetUserID(c))
 	data, err := request.BindFileUploadDTO(c, userID)
 	if err != nil {
