@@ -15,6 +15,7 @@ func NewRouter(
 	router *gin.Engine,
 	cfg *config.Config,
 	userUC usecase.User,
+	projectUC usecase.Project,
 	authUC usecase.Authentication,
 	contextmanager contextmanager.Gin,
 	errHandler customerrors.ErrorHandler,
@@ -24,5 +25,6 @@ func NewRouter(
 
 	g := router.Group("/v1")
 	NewUserRouter(g, userUC, authMW, errHandler, contextmanager, storage)
-	NewAuthRouter(contextmanager, g, authUC, errHandler, cfg, authMW)
+	NewProjectRouter(g, projectUC, authMW, errHandler, contextmanager)
+	NewAuthRouter(g, authUC, authMW, errHandler, contextmanager, cfg)
 }

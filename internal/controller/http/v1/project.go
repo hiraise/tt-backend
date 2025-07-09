@@ -1,0 +1,113 @@
+package v1
+
+import (
+	"net/http"
+	"strconv"
+	"task-trail/internal/controller/http/v1/request"
+	"task-trail/internal/controller/http/v1/response"
+	"task-trail/internal/customerrors"
+	"task-trail/internal/pkg/contextmanager"
+	"task-trail/internal/usecase"
+	"task-trail/internal/utils"
+
+	"github.com/gin-gonic/gin"
+)
+
+type projectRoutes struct {
+	contextmanager contextmanager.Gin
+	errHandler     customerrors.ErrorHandler
+	u              usecase.Project
+}
+
+// @Summary 	create new project
+// @Description ...
+// @Security BearerAuth
+// @Tags 		/v1/project
+// @Accept 		json
+// @Produce 	json
+// @Param 		body body request.projectCreateReq true "project data"
+// @Success 	200
+// @Failure		400 {object} response.ErrAPI "invalid request body"
+// @Failure		404 {object} response.ErrAPI "user not found"
+// @Failure		401 {object} response.ErrAPI "authentication required"
+// @Router 		/v1/projects [post]
+func (r *projectRoutes) create(c *gin.Context) {
+	userID := utils.Must(r.contextmanager.GetUserID(c))
+	data, err := request.BindProjectCreateDTO(c, userID)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+	id, err := r.u.Create(c, data)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, id)
+}
+
+// @Summary 	return projects where user is owner or member
+// @Description ...
+// @Security BearerAuth
+// @Tags 		/v1/project
+// @Accept 		json
+// @Produce 	json
+// @Success 	200
+// @Failure		404 {object} response.ErrAPI "user not found"
+// @Failure		401 {object} response.ErrAPI "authentication required"
+// @Router 		/v1/projects [get]
+func (r *projectRoutes) getProjects(c *gin.Context) {
+	userID := utils.Must(r.contextmanager.GetUserID(c))
+	data, err := request.BindProjectListDTO(c, userID)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+	res, err := r.u.GetList(c, data)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, response.NewProjectResFromDTOBatch(res))
+}
+
+// @Summary 	add new members to project
+// @Description ...
+// @Security BearerAuth
+// @Tags 		/v1/project
+// @Accept 		json
+// @Produce 	json
+// @Param 		id path int true "project id"
+// @Param 		body body request.projectAddMembersReq true "emails"
+// @Success 	200
+// @Failure		404 {object} response.ErrAPI "user not found"
+// @Failure		401 {object} response.ErrAPI "authentication required"
+// @Router 		/v1/projects/{id}/members [post]
+func (r *projectRoutes) addMembers(c *gin.Context) {
+	userID := utils.Must(r.contextmanager.GetUserID(c))
+	projectID := utils.Must(strconv.Atoi(c.Param("id")))
+	data, err := request.BindProjectAddMembersDTO(c, userID, projectID)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+	if err := r.u.AddMembers(c, data); err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, nil)
+}
+
+func NewProjectRouter(
+	router *gin.RouterGroup,
+	u usecase.Project,
+	authMW gin.HandlerFunc,
+	errHandler customerrors.ErrorHandler,
+	contextmanager contextmanager.Gin,
+) {
+	r := &projectRoutes{u: u, contextmanager: contextmanager, errHandler: errHandler}
+	g := router.Group("/projects")
+	g.POST(":id/members", authMW, r.addMembers)
+	g.POST("", authMW, r.create)
+	g.GET("", authMW, r.getProjects)
+}
