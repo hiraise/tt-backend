@@ -68,6 +68,37 @@ func TestUseCase_AddMembers(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "success, but users already registered",
+			args: testArgs,
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
+
+				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
+				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(
+					[]*dto.UserEmailAndID{
+						{ID: 2, Email: "test1@mail.com"},
+						{ID: 3, Email: "test2@mail.com"},
+					},
+					nil,
+				)
+				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(2)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(
+					[]*dto.UserEmailAndID{
+						{ID: 2, Email: "test1@mail.com"},
+						{ID: 3, Email: "test2@mail.com"},
+						{ID: 4, Email: "test3@mail.com"},
+						{ID: 5, Email: "test4@mail.com"},
+					},
+					nil,
+				)
+				deps.projectRepo.EXPECT().AddMembers(args.ctx, gomock.Any()).Return(nil)
+				deps.notificationRepo.EXPECT().SendInvintationInProject(ctx, gomock.Any()).Return(nil)
+				return uc
+			},
+			wantErr: false,
+		},
+		{
 			name: "project not found",
 			args: testArgs,
 			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {

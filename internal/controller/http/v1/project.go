@@ -20,7 +20,6 @@ type projectRoutes struct {
 }
 
 // @Summary 	create new project
-// @Description ...
 // @Security BearerAuth
 // @Tags 		/v1/project
 // @Accept 		json
@@ -46,8 +45,8 @@ func (r *projectRoutes) create(c *gin.Context) {
 	c.JSON(http.StatusOK, response.NewProjectCreateResFromDTO(id))
 }
 
-// @Summary 	return projects where user is owner or member
-// @Description ...
+// @Summary 	get list of projects
+// @Description List of projects where current user is a member or owner
 // @Security BearerAuth
 // @Tags 		/v1/project
 // @Accept 		json
@@ -72,7 +71,7 @@ func (r *projectRoutes) getProjects(c *gin.Context) {
 }
 
 // @Summary 	add new members to project
-// @Description ...
+// @Description validate list of candidates, create accounts if they do not exist yet, and add them to the project
 // @Security BearerAuth
 // @Tags 		/v1/project
 // @Accept 		json
@@ -98,6 +97,26 @@ func (r *projectRoutes) addMembers(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
+// @Summary 	get list of candidates to add to the project
+// @Description Candidates are participatns in other projects owned by the current user
+// @Security BearerAuth
+// @Tags 		/v1/project
+// @Accept 		json
+// @Produce 	json
+// @Param 		id path int true "project id"
+// @Success 	200 {array} response.ProjectRes
+// @Failure		401 {object} response.ErrAPI "authentication required"
+// @Router 		/v1/projects/{id}/candidates [get]
+func (r *projectRoutes) getCandidates(c *gin.Context) {
+	// userID := utils.Must(r.contextmanager.GetUserID(c))
+	// projectID := utils.Must(strconv.Atoi(c.Param("id")))
+	// if err := r.u.AddMembers(c, data); err != nil {
+	// 	_ = c.Error(err)
+	// 	return
+	// }
+	c.JSON(http.StatusOK, nil)
+}
+
 func NewProjectRouter(
 	router *gin.RouterGroup,
 	u usecase.Project,
@@ -108,6 +127,7 @@ func NewProjectRouter(
 	r := &projectRoutes{u: u, contextmanager: contextmanager, errHandler: errHandler}
 	g := router.Group("/projects")
 	g.POST(":id/members", authMW, r.addMembers)
+	g.GET(":id/candidates", authMW, r.getCandidates)
 	g.POST("", authMW, r.create)
 	g.GET("", authMW, r.getProjects)
 }

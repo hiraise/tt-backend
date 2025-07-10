@@ -44,4 +44,5 @@ type Project interface {
 	Create(ctx context.Context, data *dto.ProjectCreate) (int, error)
 	GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error)
 	AddMembers(ctx context.Context, data *dto.ProjectAddMembers) error
+	// GetCandidates(ctx context.Context, projectID int, ownerID int) ([]*dto.UserSimple, error)
 }

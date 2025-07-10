@@ -28,6 +28,9 @@ func (r *PgProjectRepository) Create(ctx context.Context, data *dto.ProjectCreat
 	if err != nil {
 		return 0, r.handleError(err)
 	}
+	if err := r.AddMembers(ctx, &dto.ProjectAddMembersDB{ProjectID: id, MemberIDs: []int{data.OwnerID}}); err != nil {
+		return 0, err
+	}
 	return id, nil
 }
 

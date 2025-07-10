@@ -32,6 +32,12 @@ type CurrentUser struct {
 	AvatarURL *string
 }
 
+type UserSimple struct {
+	ID       int
+	Email    string
+	Username *string
+}
+
 type UserAvatar struct {
 	AvatarURL string
 }

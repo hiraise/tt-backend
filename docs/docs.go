@@ -404,7 +404,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "...",
+                "description": "List of projects where current user is a member or owner",
                 "consumes": [
                     "application/json"
                 ],
@@ -414,7 +414,7 @@ const docTemplate = `{
                 "tags": [
                     "/v1/project"
                 ],
-                "summary": "return projects where user is owner or member",
+                "summary": "get list of projects",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -445,7 +445,6 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "...",
                 "consumes": [
                     "application/json"
                 ],
@@ -495,6 +494,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/projects/{id}/candidates": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Candidates are participatns in other projects owned by the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "/v1/project"
+                ],
+                "summary": "get list of candidates to add to the project",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "project id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.ProjectRes"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication required",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrAPI"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/projects/{id}/members": {
             "post": {
                 "security": [
@@ -502,7 +547,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "...",
+                "description": "validate list of candidates, create accounts if they do not exist yet, and add them to the project",
                 "consumes": [
                     "application/json"
                 ],
