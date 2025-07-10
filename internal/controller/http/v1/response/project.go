@@ -23,6 +23,9 @@ func NewProjectResFromDTO(data *dto.ProjectRes) *ProjectRes {
 }
 
 func NewProjectResFromDTOBatch(data []*dto.ProjectRes) []*ProjectRes {
+	if len(data) == 0 {
+		return []*ProjectRes{}
+	}
 	var retVal []*ProjectRes
 	for _, v := range data {
 		retVal = append(retVal, NewProjectResFromDTO(v))
