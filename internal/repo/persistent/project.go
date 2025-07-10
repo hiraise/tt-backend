@@ -36,7 +36,7 @@ func (r *PgProjectRepository) GetList(ctx context.Context, data *dto.ProjectList
 		SELECT P.id, P.name, P.description, COUNT(T.id)
 		FROM public.projects as P 
 		LEFT JOIN public.tasks as T on P.id = T.project_id
-		WHERE P.id IN (SELECT project_id FROM project_users WHERE user_id = $1) AND 
+		WHERE P.id IN (SELECT project_id FROM project_users WHERE user_id = $1)
 		GROUP BY (P.id)
 	`
 	rows, err := r.getDb(ctx).Query(ctx, query, data.MemberID)
