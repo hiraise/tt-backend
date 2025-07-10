@@ -53,6 +53,7 @@ type NotificationRepository interface {
 	SendVerificationEmail(ctx context.Context, email string, token string) error
 	SendResetPasswordEmail(ctx context.Context, email string, token string) error
 	SendAutoRegisterEmail(ctx context.Context, email string) error
+	SendInvintationInProject(ctx context.Context, data *dto.NotificationProjectInvite) error
 }
 
 type FileRepository interface {

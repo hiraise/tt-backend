@@ -10,11 +10,12 @@ import (
 )
 
 type testDeps struct {
-	authUC      mocks.MockAuthentication
-	userRepo    mocks.MockUserRepository
-	projectRepo mocks.MockProjectRepository
-	txManager   mocks.MockTxManager
-	errHandler  customerrors.ErrorHandler
+	authUC           mocks.MockAuthentication
+	userRepo         mocks.MockUserRepository
+	projectRepo      mocks.MockProjectRepository
+	notificationRepo mocks.MockNotificationRepository
+	txManager        mocks.MockTxManager
+	errHandler       customerrors.ErrorHandler
 }
 
 func mockUseCase(ctrl *gomock.Controller) (*project.UseCase, *testDeps) {
@@ -23,13 +24,15 @@ func mockUseCase(ctrl *gomock.Controller) (*project.UseCase, *testDeps) {
 	txManager := mocks.NewMockTxManager(ctrl)
 	errHandler := customerrors.NewErrHander()
 	mockAuhtUC := mocks.NewMockAuthentication(ctrl)
-	uc := project.New(txManager, mockAuhtUC, projectRepo, userRepo, errHandler)
+	mockNotificationRepo := mocks.NewMockNotificationRepository(ctrl)
+	uc := project.New(txManager, mockAuhtUC, projectRepo, userRepo, mockNotificationRepo, errHandler)
 	deps := &testDeps{
-		authUC:      *mockAuhtUC,
-		txManager:   *txManager,
-		projectRepo: *projectRepo,
-		userRepo:    *userRepo,
-		errHandler:  errHandler,
+		authUC:           *mockAuhtUC,
+		txManager:        *txManager,
+		projectRepo:      *projectRepo,
+		userRepo:         *userRepo,
+		notificationRepo: *mockNotificationRepo,
+		errHandler:       errHandler,
 	}
 	return uc, deps
 }

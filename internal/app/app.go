@@ -67,7 +67,7 @@ func Run(cfg *config.Config) {
 	userRepo := persistent.NewUserRepo(pg.Pool)
 	projectRepo := persistent.NewProjectRepo(pg.Pool)
 	tokenRepo := persistent.NewRefreshTokenRepo(pg.Pool)
-	notificationRepo := api.NewSmtpNotificationRepo(smtp, logger, uuidGenerator, cfg.Frontend.VerifyURL, cfg.Frontend.ResetPasswordURL)
+	notificationRepo := api.NewSmtpNotificationRepo(smtp, logger, uuidGenerator, cfg.Frontend.VerifyURL, cfg.Frontend.ResetPasswordURL, cfg.Frontend.ProjectURL)
 	emailTokenRepo := persistent.NewEmailTokenRepo(pg.Pool)
 	fileRepo := persistent.NewFileRepo(pg.Pool)
 	// init uc
@@ -94,7 +94,7 @@ func Run(cfg *config.Config) {
 		uuidGenerator,
 	)
 
-	projectUC := projectuc.New(txManager, authUC, projectRepo, userRepo, errHandler)
+	projectUC := projectuc.New(txManager, authUC, projectRepo, userRepo, notificationRepo, errHandler)
 	// init middlewares
 
 	recoveryMW := middleware.NewRecovery(logger1, contextm)

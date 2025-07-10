@@ -44,10 +44,12 @@ func (u *UseCase) AddMembers(ctx context.Context, data *dto.ProjectAddMembers) e
 				"membersIDs", memberIDs,
 			)
 		}
-		
+		if err := u.notificationRepo.SendInvintationInProject(ctx, &dto.NotificationProjectInvite{ProjectID: project.ID, ProjectName: project.Name, Recipients: data.MemberEmails}); err != nil {
+			return u.errHandler.InternalTrouble(err, "failed to send project invitation", "projectID", project.ID)
+		}
 		return nil
 	}
-	
+
 	return u.txManager.DoWithTx(ctx, f)
 }
 

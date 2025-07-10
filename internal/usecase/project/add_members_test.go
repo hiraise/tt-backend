@@ -62,6 +62,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 					nil,
 				)
 				deps.projectRepo.EXPECT().AddMembers(args.ctx, gomock.Any()).Return(nil)
+				deps.notificationRepo.EXPECT().SendInvintationInProject(ctx, gomock.Any()).Return(nil)
 				return uc
 			},
 			wantErr: false,
@@ -123,6 +124,119 @@ func TestUseCase_AddMembers(t *testing.T) {
 			wantErrType: customerrors.InternalErr,
 			wantErrMsg:  "failed to get project members",
 		},
+		{
+			name: "failed to register new users",
+			args: testArgs,
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
+
+				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
+				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
+				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(deps.errHandler.InternalTrouble(nil, "failed to register new users"))
+				return uc
+			},
+			wantErr:     true,
+			wantErrType: customerrors.InternalErr,
+			wantErrMsg:  "failed to register new users",
+		},
+		{
+			name: "failed to get new members",
+			args: testArgs,
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
+
+				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
+				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
+				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(4)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(nil, repo.ErrInternal)
+				return uc
+			},
+			wantErr:     true,
+			wantErrType: customerrors.InternalErr,
+			wantErrMsg:  "failed to get new members",
+		},
+		{
+			name: "mismatch between found user IDs and new members count",
+			args: testArgs,
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
+
+				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
+				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
+				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(4)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(
+					[]*dto.UserEmailAndID{
+						{ID: 2, Email: "test1@mail.com"},
+						{ID: 3, Email: "test2@mail.com"},
+						{ID: 4, Email: "test3@mail.com"},
+					},
+					nil,
+				)
+
+				return uc
+			},
+			wantErr:     true,
+			wantErrType: customerrors.InternalErr,
+			wantErrMsg:  "mismatch between found user IDs and new members count",
+		},
+		{
+			name: "failed to add new members to the project",
+			args: testArgs,
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
+
+				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
+				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
+				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(4)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(
+					[]*dto.UserEmailAndID{
+						{ID: 2, Email: "test1@mail.com"},
+						{ID: 3, Email: "test2@mail.com"},
+						{ID: 4, Email: "test3@mail.com"},
+						{ID: 5, Email: "test4@mail.com"},
+					},
+					nil,
+				)
+				deps.projectRepo.EXPECT().AddMembers(args.ctx, gomock.Any()).Return(repo.ErrInternal)
+				return uc
+			},
+			wantErr:     true,
+			wantErrType: customerrors.InternalErr,
+			wantErrMsg:  "failed to add new members to the project",
+		},
+		{
+			name: "failed to send project invitation",
+			args: testArgs,
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
+
+				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
+				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
+				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(4)
+				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(
+					[]*dto.UserEmailAndID{
+						{ID: 2, Email: "test1@mail.com"},
+						{ID: 3, Email: "test2@mail.com"},
+						{ID: 4, Email: "test3@mail.com"},
+						{ID: 5, Email: "test4@mail.com"},
+					},
+					nil,
+				)
+				deps.projectRepo.EXPECT().AddMembers(args.ctx, gomock.Any()).Return(nil)
+				deps.notificationRepo.EXPECT().SendInvintationInProject(ctx, gomock.Any()).Return(repo.ErrInternal)
+				return uc
+			},
+			wantErr:     true,
+			wantErrType: customerrors.InternalErr,
+			wantErrMsg:  "failed to send project invitation",
+		},
+
+		// failed to send invitation
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

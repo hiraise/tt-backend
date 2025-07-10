@@ -437,6 +437,20 @@ func (mr *MockNotificationRepositoryMockRecorder) SendAutoRegisterEmail(ctx, ema
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAutoRegisterEmail", reflect.TypeOf((*MockNotificationRepository)(nil).SendAutoRegisterEmail), ctx, email)
 }
 
+// SendInvintationInProject mocks base method.
+func (m *MockNotificationRepository) SendInvintationInProject(ctx context.Context, data *dto.NotificationProjectInvite) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendInvintationInProject", ctx, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendInvintationInProject indicates an expected call of SendInvintationInProject.
+func (mr *MockNotificationRepositoryMockRecorder) SendInvintationInProject(ctx, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendInvintationInProject", reflect.TypeOf((*MockNotificationRepository)(nil).SendInvintationInProject), ctx, data)
+}
+
 // SendResetPasswordEmail mocks base method.
 func (m *MockNotificationRepository) SendResetPasswordEmail(ctx context.Context, email, token string) error {
 	m.ctrl.T.Helper()

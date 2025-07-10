@@ -49,6 +49,7 @@ type Frontend struct {
 	URL              string `env:"FRONTEND_URL,required"`
 	VerifyURL        string `env:"FRONTEND_VERIFY_URL,required"`
 	ResetPasswordURL string `env:"FRONTEND_RESET_PASSWORD_URL,required"`
+	ProjectURL       string `env:"FRONTEND_PROJECT_URL,required"`
 }
 
 type S3 struct {
