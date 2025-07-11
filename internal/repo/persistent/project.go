@@ -140,7 +140,7 @@ func (r *PgProjectRepository) GetCandidates(ctx context.Context, ownerID int, pr
 		FROM users 
 		WHERE 
 			id IN (
-				SELECT user_id 
+				SELECT DISTINCT user_id 
 				FROM project_users 
 				WHERE project_id IN (
 					SELECT id 
