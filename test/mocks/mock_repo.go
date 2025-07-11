@@ -570,6 +570,21 @@ func (mr *MockProjectRepositoryMockRecorder) Create(ctx, data any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockProjectRepository)(nil).Create), ctx, data)
 }
 
+// GetCandidates mocks base method.
+func (m *MockProjectRepository) GetCandidates(ctx context.Context, ownerID, projectID int) ([]*dto.UserSimple, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCandidates", ctx, ownerID, projectID)
+	ret0, _ := ret[0].([]*dto.UserSimple)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCandidates indicates an expected call of GetCandidates.
+func (mr *MockProjectRepositoryMockRecorder) GetCandidates(ctx, ownerID, projectID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCandidates", reflect.TypeOf((*MockProjectRepository)(nil).GetCandidates), ctx, ownerID, projectID)
+}
+
 // GetList mocks base method.
 func (m *MockProjectRepository) GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error) {
 	m.ctrl.T.Helper()
@@ -598,4 +613,18 @@ func (m *MockProjectRepository) GetOwnedProject(ctx context.Context, projectID, 
 func (mr *MockProjectRepositoryMockRecorder) GetOwnedProject(ctx, projectID, ownerID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOwnedProject", reflect.TypeOf((*MockProjectRepository)(nil).GetOwnedProject), ctx, projectID, ownerID)
+}
+
+// IsMember mocks base method.
+func (m *MockProjectRepository) IsMember(ctx context.Context, projectID, memberID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsMember", ctx, projectID, memberID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// IsMember indicates an expected call of IsMember.
+func (mr *MockProjectRepositoryMockRecorder) IsMember(ctx, projectID, memberID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsMember", reflect.TypeOf((*MockProjectRepository)(nil).IsMember), ctx, projectID, memberID)
 }

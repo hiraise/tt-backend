@@ -108,13 +108,14 @@ func (r *projectRoutes) addMembers(c *gin.Context) {
 // @Failure		401 {object} response.ErrAPI "authentication required"
 // @Router 		/v1/projects/{id}/candidates [get]
 func (r *projectRoutes) getCandidates(c *gin.Context) {
-	// userID := utils.Must(r.contextmanager.GetUserID(c))
-	// projectID := utils.Must(strconv.Atoi(c.Param("id")))
-	// if err := r.u.AddMembers(c, data); err != nil {
-	// 	_ = c.Error(err)
-	// 	return
-	// }
-	c.JSON(http.StatusOK, nil)
+	userID := utils.Must(r.contextmanager.GetUserID(c))
+	projectID := utils.Must(strconv.Atoi(c.Param("id")))
+	res, err := r.u.GetCandidates(c, userID, projectID)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, response.NewUserSimpleResFromDTOBatch(res))
 }
 
 func NewProjectRouter(

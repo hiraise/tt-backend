@@ -344,6 +344,21 @@ func (mr *MockProjectMockRecorder) Create(ctx, data any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockProject)(nil).Create), ctx, data)
 }
 
+// GetCandidates mocks base method.
+func (m *MockProject) GetCandidates(ctx context.Context, ownerID, projectID int) ([]*dto.UserSimple, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCandidates", ctx, ownerID, projectID)
+	ret0, _ := ret[0].([]*dto.UserSimple)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCandidates indicates an expected call of GetCandidates.
+func (mr *MockProjectMockRecorder) GetCandidates(ctx, ownerID, projectID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCandidates", reflect.TypeOf((*MockProject)(nil).GetCandidates), ctx, ownerID, projectID)
+}
+
 // GetList mocks base method.
 func (m *MockProject) GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error) {
 	m.ctrl.T.Helper()

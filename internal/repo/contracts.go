@@ -60,10 +60,25 @@ type FileRepository interface {
 	Create(ctx context.Context, file *dto.FileCreate) error
 }
 
+// ProjectRepository defines methods for managing projects and their members.
 type ProjectRepository interface {
-	// Create method try to create new project and return project id if ok or error if something went wrong
+	// Create attempts to create a new project and returns the project ID on success, or an error if something goes wrong.
 	Create(ctx context.Context, data *dto.ProjectCreate) (int, error)
+
+	// GetList retrieves a list of projects based on the provided filter criteria.
 	GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error)
+
+	// GetOwnedProject fetches a project by its ID and owner ID.
 	GetOwnedProject(ctx context.Context, projectID int, ownerID int) (*dto.Project, error)
+
+	// GetCandidates returns a list of users who can be added to the specified project.
+	GetCandidates(ctx context.Context, ownerID int, projectID int) ([]*dto.UserSimple, error)
+
+	// AddMembers adds new members to a project.
 	AddMembers(ctx context.Context, data *dto.ProjectAddMembersDB) error
+
+	// IsMember checks if a user is a member of the specified project.
+	// Returns repo.ErrNotFound if the user is not a member, nil if the user is a member,
+	// or another repo error if a query error occurs.
+	IsMember(ctx context.Context, projectID int, memberID int) error
 }

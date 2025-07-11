@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"task-trail/internal/repo"
 	"task-trail/internal/usecase/dto"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -116,4 +117,62 @@ func (r *PgProjectRepository) GetOwnedProject(ctx context.Context, projectID int
 
 	return &item, nil
 
+}
+
+func (r *PgProjectRepository) GetCandidates(ctx context.Context, ownerID int, projectID int) ([]*dto.UserSimple, error) {
+	query := `
+		SELECT 
+			id,
+			email,
+			username 
+		FROM users 
+		WHERE 
+			id IN (
+				SELECT user_id 
+				FROM project_users 
+				WHERE project_id IN (
+					SELECT id 
+					FROM projects 
+					WHERE owner_id = $1
+				)
+			)
+			AND 
+			id NOT IN (
+				SELECT user_id
+				FROM project_users
+				WHERE project_id = $2
+			);
+	`
+	rows, err := r.getDb(ctx).Query(ctx, query, ownerID, projectID)
+	if err != nil {
+		return nil, r.handleError(err)
+	}
+
+	defer rows.Close()
+	var items []*dto.UserSimple
+	for rows.Next() {
+		var u dto.UserSimple
+		if err := rows.Scan(&u.ID, &u.Email, &u.Username); err != nil {
+			return nil, r.handleError(err)
+		}
+		items = append(items, &u)
+
+	}
+	if err := rows.Err(); err != nil {
+		return nil, r.handleError(err)
+	}
+	return items, nil
+
+}
+
+func (r *PgProjectRepository) IsMember(ctx context.Context, projectID int, memberID int) error {
+	query := `SELECT 1 FROM project_users where project_id = $1 and user_id = $2`
+	tag, err := r.getDb(ctx).Exec(ctx, query, projectID, memberID)
+	if err != nil {
+		return r.handleError(err)
+	}
+	if tag.RowsAffected() == 0 {
+		return repo.ErrNotFound
+	}
+	return nil
 }
