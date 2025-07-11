@@ -494,7 +494,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/projects/{id}/candidates": {
+        "/v1/projects/candidates": {
             "get": {
                 "security": [
                     {
@@ -517,8 +517,7 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "project id",
                         "name": "id",
-                        "in": "path",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -533,6 +532,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "authentication required",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrAPI"
+                        }
+                    },
+                    "404": {
+                        "description": "project not found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrAPI"
                         }

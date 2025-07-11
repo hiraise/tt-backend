@@ -8,21 +8,23 @@ import (
 )
 
 func (u *UseCase) GetCandidates(ctx context.Context, ownerID int, projectID int) ([]*dto.UserSimple, error) {
-	if err := u.projectRepo.IsMember(ctx, projectID, ownerID); err != nil {
-		if errors.Is(err, repo.ErrNotFound) {
-			return nil, u.errHandler.NotFound(
+	if projectID != 0 {
+		if err := u.projectRepo.IsMember(ctx, projectID, ownerID); err != nil {
+			if errors.Is(err, repo.ErrNotFound) {
+				return nil, u.errHandler.NotFound(
+					err,
+					"project not found",
+					"ownerID", ownerID,
+					"projectID", projectID,
+				)
+			}
+			return nil, u.errHandler.InternalTrouble(
 				err,
-				"project not found",
+				"failed to verify user membership",
 				"ownerID", ownerID,
 				"projectID", projectID,
 			)
 		}
-		return nil, u.errHandler.InternalTrouble(
-			err,
-			"failed to verify user membership",
-			"ownerID", ownerID,
-			"projectID", projectID,
-		)
 	}
 	res, err := u.projectRepo.GetCandidates(ctx, ownerID, projectID)
 	if err != nil {

@@ -120,7 +120,19 @@ func (r *PgProjectRepository) GetOwnedProject(ctx context.Context, projectID int
 }
 
 func (r *PgProjectRepository) GetCandidates(ctx context.Context, ownerID int, projectID int) ([]*dto.UserSimple, error) {
-	query := `
+	subquery := `id != $1;`
+	values := []any{ownerID}
+	if projectID != 0 {
+		subquery = `
+			id NOT IN (
+				SELECT user_id
+				FROM project_users
+				WHERE project_id = $2
+			);
+		`
+		values = append(values, projectID)
+	}
+	query := fmt.Sprintf(`
 		SELECT 
 			id,
 			email,
@@ -137,13 +149,10 @@ func (r *PgProjectRepository) GetCandidates(ctx context.Context, ownerID int, pr
 				)
 			)
 			AND 
-			id NOT IN (
-				SELECT user_id
-				FROM project_users
-				WHERE project_id = $2
-			);
-	`
-	rows, err := r.getDb(ctx).Query(ctx, query, ownerID, projectID)
+			%s
+	`, subquery)
+
+	rows, err := r.getDb(ctx).Query(ctx, query, values...)
 	if err != nil {
 		return nil, r.handleError(err)
 	}

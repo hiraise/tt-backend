@@ -485,7 +485,7 @@
                 }
             }
         },
-        "/v1/projects/{id}/candidates": {
+        "/v1/projects/candidates": {
             "get": {
                 "security": [
                     {
@@ -508,8 +508,7 @@
                         "type": "integer",
                         "description": "project id",
                         "name": "id",
-                        "in": "path",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -524,6 +523,12 @@
                     },
                     "401": {
                         "description": "authentication required",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrAPI"
+                        }
+                    },
+                    "404": {
+                        "description": "project not found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrAPI"
                         }

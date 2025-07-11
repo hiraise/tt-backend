@@ -426,36 +426,6 @@ paths:
       summary: create new project
       tags:
       - /v1/project
-  /v1/projects/{id}/candidates:
-    get:
-      consumes:
-      - application/json
-      description: Candidates are participatns in other projects owned by the current
-        user
-      parameters:
-      - description: project id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/response.ProjectRes'
-            type: array
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: get list of candidates to add to the project
-      tags:
-      - /v1/project
   /v1/projects/{id}/members:
     post:
       consumes:
@@ -490,6 +460,39 @@ paths:
       security:
       - BearerAuth: []
       summary: add new members to project
+      tags:
+      - /v1/project
+  /v1/projects/candidates:
+    get:
+      consumes:
+      - application/json
+      description: Candidates are participatns in other projects owned by the current
+        user
+      parameters:
+      - description: project id
+        in: query
+        name: id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.ProjectRes'
+            type: array
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "404":
+          description: project not found
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      security:
+      - BearerAuth: []
+      summary: get list of candidates to add to the project
       tags:
       - /v1/project
   /v1/users/{id}:
