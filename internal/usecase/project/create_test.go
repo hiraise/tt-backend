@@ -43,6 +43,7 @@ func TestUseCase_Create(t *testing.T) {
 			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
 				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(1, nil)
 				return uc
 			},
@@ -55,6 +56,7 @@ func TestUseCase_Create(t *testing.T) {
 			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
 				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(0, repo.ErrNotFound)
 				return uc
 			},
@@ -68,6 +70,7 @@ func TestUseCase_Create(t *testing.T) {
 			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
 				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(0, repo.ErrInternal)
 				return uc
 			},
