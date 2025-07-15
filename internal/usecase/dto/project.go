@@ -8,7 +8,7 @@ type Project struct {
 	Description string
 	OwnerID     int
 	CreatedAt   time.Time
-	Members 	[]*UserEmailAndID
+	Members     []*UserEmailAndID
 }
 
 type ProjectCreate struct {
@@ -39,5 +39,6 @@ type ProjectRes struct {
 	ID          int
 	Name        string
 	Description string
+	CreatedAt   time.Time
 	TaskCount   int
 }

@@ -51,7 +51,7 @@ func (r *projectRoutes) create(c *gin.Context) {
 // @Tags 		/v1/project
 // @Accept 		json
 // @Produce 	json
-// @Success 	200 {array} response.ProjectRes
+// @Success 	200 {array} response.projectRes
 // @Failure		404 {object} response.ErrAPI "user not found"
 // @Failure		401 {object} response.ErrAPI "authentication required"
 // @Router 		/v1/projects [get]
@@ -68,6 +68,28 @@ func (r *projectRoutes) getProjects(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, response.NewProjectResFromDTOBatch(res))
+}
+
+// @Summary 	get project by id
+// @Description Project by id, where current user is a member
+// @Security BearerAuth
+// @Tags 		/v1/project
+// @Accept 		json
+// @Produce 	json
+// @Param 		id path int true "project id"
+// @Success 	200 {object} response.projectRes
+// @Failure		404 {object} response.ErrAPI "project not found"
+// @Failure		401 {object} response.ErrAPI "authentication required"
+// @Router 		/v1/projects/{id} [get]
+func (r *projectRoutes) getByID(c *gin.Context) {
+	userID := utils.Must(r.contextmanager.GetUserID(c))
+	projectID := utils.Must(strconv.Atoi(c.Param("id")))
+	res, err := r.u.GetByID(c, projectID, userID)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, response.NewProjectResFromDTO(res))
 }
 
 // @Summary 	add new members to project
@@ -104,7 +126,7 @@ func (r *projectRoutes) addMembers(c *gin.Context) {
 // @Accept 		json
 // @Produce 	json
 // @Param 		id query int false "project id"
-// @Success 	200 {array} response.ProjectRes
+// @Success 	200 {array} response.projectRes
 // @Failure		401 {object} response.ErrAPI "authentication required"
 // @Failure		404 {object} response.ErrAPI "project not found"
 // @Router 		/v1/projects/candidates [get]
@@ -134,6 +156,7 @@ func NewProjectRouter(
 	g := router.Group("/projects")
 	g.POST(":id/members", authMW, r.addMembers)
 	g.GET("candidates", authMW, r.getCandidates)
+	g.GET(":id", authMW, r.getByID)
 	g.POST("", authMW, r.create)
 	g.GET("", authMW, r.getProjects)
 }

@@ -37,7 +37,7 @@ func (r *PgProjectRepository) Create(ctx context.Context, data *dto.ProjectCreat
 
 func (r *PgProjectRepository) GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error) {
 	query := `
-		SELECT P.id, P.name, P.description, COUNT(T.id)
+		SELECT P.id, P.name, P.description, P.created_at, COUNT(T.id)
 		FROM public.projects as P 
 		LEFT JOIN public.tasks as T on P.id = T.project_id
 		WHERE P.id IN (SELECT project_id FROM project_users WHERE user_id = $1)
@@ -52,7 +52,7 @@ func (r *PgProjectRepository) GetList(ctx context.Context, data *dto.ProjectList
 	var retVal []*dto.ProjectRes
 	for rows.Next() {
 		var item dto.ProjectRes
-		if err := rows.Scan(&item.ID, &item.Name, &item.Description, &item.TaskCount); err != nil {
+		if err := rows.Scan(&item.ID, &item.Name, &item.Description, &item.CreatedAt, &item.TaskCount); err != nil {
 			return nil, r.handleError(err)
 		}
 		retVal = append(retVal, &item)
@@ -171,6 +171,22 @@ func (r *PgProjectRepository) GetCandidates(ctx context.Context, ownerID int, pr
 		return nil, r.handleError(err)
 	}
 	return items, nil
+
+}
+
+func (r *PgProjectRepository) GetByID(ctx context.Context, projectID int) (*dto.ProjectRes, error) {
+	query := `
+		SELECT P.id, P.name, P.description, P.created_at, COUNT(T.ID)
+		FROM projects as P
+		LEFT JOIN public.tasks as T on P.id = T.project_id
+		WHERE P.id = $1
+		GROUP BY (P.id)
+	`
+	var item dto.ProjectRes
+	if err := r.getDb(ctx).QueryRow(ctx, query, projectID).Scan(&item.ID, &item.Name, &item.Description, &item.CreatedAt, &item.TaskCount); err != nil {
+		return nil, r.handleError(err)
+	}
+	return &item, nil
 
 }
 

@@ -38,6 +38,14 @@ type UserSimple struct {
 	Username *string
 }
 
+type UserProject struct {
+	ID        int
+	Email     string
+	Username  *string
+	AvatarURL *string
+	Position  string
+}
+
 type UserAvatar struct {
 	AvatarURL string
 }
