@@ -26,7 +26,9 @@ func BindFileUploadDTO(c *gin.Context, userID int) (*dto.FileUpload, error) {
 	if err != nil {
 		return nil, fmt.Errorf("file reading failure: %w", err)
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	if _, err = io.Copy(buf, f); err != nil {
 		return nil, fmt.Errorf("file copying failure: %w", err)

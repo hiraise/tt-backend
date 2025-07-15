@@ -23,7 +23,7 @@ func (r *PgUserRepository) Create(ctx context.Context, dto *dto.UserCreate) (int
 	substring := `
 		(email, password_hash) 
 		VALUES ($1, $2)`
-	var args []any = []any{dto.Email, dto.PasswordHash}
+	args := []any{dto.Email, dto.PasswordHash}
 	if dto.IsVerified {
 		substring = `
 			(email, password_hash, verified_at) 
