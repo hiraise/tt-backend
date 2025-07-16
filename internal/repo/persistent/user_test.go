@@ -19,9 +19,6 @@ func verifyUsersCount(t *testing.T, ctx context.Context, connection pgConn, c in
 	require.Equal(t, c, count)
 }
 
-const testEmail = "test@mail.ru"
-const testEmail1 = "test1@mail.ru"
-
 var basicUser dto.UserCreate = dto.UserCreate{Email: testEmail, PasswordHash: "123"}
 
 func TestUserCreate(t *testing.T) {

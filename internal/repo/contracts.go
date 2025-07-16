@@ -69,8 +69,8 @@ type ProjectRepository interface {
 	GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error)
 
 	GetByID(ctx context.Context, projectID int) (*dto.ProjectRes, error)
-	// GetOwnedProject fetches a project by its ID and owner ID.
-	GetOwnedProject(ctx context.Context, projectID int, ownerID int) (*dto.Project, error)
+	// GetOwned fetches a project by its ID and owner ID.
+	GetOwned(ctx context.Context, projectID int, ownerID int) (*dto.Project, error)
 
 	// GetCandidates returns a list of users who can be added to a porject.
 	// If projectID is 0, returns all candidates for the owner;

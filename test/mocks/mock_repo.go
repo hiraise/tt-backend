@@ -615,19 +615,19 @@ func (mr *MockProjectRepositoryMockRecorder) GetList(ctx, data any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*MockProjectRepository)(nil).GetList), ctx, data)
 }
 
-// GetOwnedProject mocks base method.
-func (m *MockProjectRepository) GetOwnedProject(ctx context.Context, projectID, ownerID int) (*dto.Project, error) {
+// GetOwned mocks base method.
+func (m *MockProjectRepository) GetOwned(ctx context.Context, projectID, ownerID int) (*dto.Project, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOwnedProject", ctx, projectID, ownerID)
+	ret := m.ctrl.Call(m, "GetOwned", ctx, projectID, ownerID)
 	ret0, _ := ret[0].(*dto.Project)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetOwnedProject indicates an expected call of GetOwnedProject.
-func (mr *MockProjectRepositoryMockRecorder) GetOwnedProject(ctx, projectID, ownerID any) *gomock.Call {
+// GetOwned indicates an expected call of GetOwned.
+func (mr *MockProjectRepositoryMockRecorder) GetOwned(ctx, projectID, ownerID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOwnedProject", reflect.TypeOf((*MockProjectRepository)(nil).GetOwnedProject), ctx, projectID, ownerID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOwned", reflect.TypeOf((*MockProjectRepository)(nil).GetOwned), ctx, projectID, ownerID)
 }
 
 // IsMember mocks base method.

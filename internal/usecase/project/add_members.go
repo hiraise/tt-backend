@@ -9,7 +9,7 @@ import (
 )
 
 func (u *UseCase) AddMembers(ctx context.Context, data *dto.ProjectAddMembers) error {
-	project, err := u.getOwnedProject(ctx, data.ProjectID, data.OwnerID)
+	project, err := u.GetOwned(ctx, data.ProjectID, data.OwnerID)
 	if err != nil {
 		return err
 	}
@@ -53,8 +53,8 @@ func (u *UseCase) AddMembers(ctx context.Context, data *dto.ProjectAddMembers) e
 	return u.txManager.DoWithTx(ctx, f)
 }
 
-func (u *UseCase) getOwnedProject(ctx context.Context, projectID int, ownerID int) (*dto.Project, error) {
-	project, err := u.projectRepo.GetOwnedProject(ctx, projectID, ownerID)
+func (u *UseCase) GetOwned(ctx context.Context, projectID int, ownerID int) (*dto.Project, error) {
+	project, err := u.projectRepo.GetOwned(ctx, projectID, ownerID)
 	if err != nil {
 		if errors.Is(err, repo.ErrNotFound) {
 			return nil, u.errHandler.NotFound(err, "project not found", "projectID", projectID, "ownerID", ownerID)

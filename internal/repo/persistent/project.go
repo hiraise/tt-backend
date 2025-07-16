@@ -7,6 +7,7 @@ import (
 	"task-trail/internal/repo"
 	"task-trail/internal/usecase/dto"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -47,17 +48,21 @@ func (r *PgProjectRepository) GetList(ctx context.Context, data *dto.ProjectList
 	if err != nil {
 		return nil, r.handleError(err)
 	}
-	defer rows.Close()
 
-	var retVal []*dto.ProjectRes
-	for rows.Next() {
+	retVal, err := ScanRows(rows, func(row pgx.Rows) (*dto.ProjectRes, error) {
 		var item dto.ProjectRes
-		if err := rows.Scan(&item.ID, &item.Name, &item.Description, &item.CreatedAt, &item.TaskCount); err != nil {
-			return nil, r.handleError(err)
+		if err := row.Scan(
+			&item.ID,
+			&item.Name,
+			&item.Description,
+			&item.CreatedAt,
+			&item.TaskCount,
+		); err != nil {
+			return nil, err
 		}
-		retVal = append(retVal, &item)
-	}
-	if err := rows.Err(); err != nil {
+		return &item, nil
+	})
+	if err != nil {
 		return nil, r.handleError(err)
 	}
 	return retVal, nil
@@ -84,7 +89,7 @@ func (r *PgProjectRepository) AddMembers(ctx context.Context, data *dto.ProjectA
 	return nil
 }
 
-func (r *PgProjectRepository) GetOwnedProject(ctx context.Context, projectID int, ownerID int) (*dto.Project, error) {
+func (r *PgProjectRepository) GetOwned(ctx context.Context, projectID int, ownerID int) (*dto.Project, error) {
 	query := `
 		SELECT id, name, description, owner_id, created_at FROM projects WHERE id = $1 AND owner_id = $2;
 	`
@@ -101,19 +106,17 @@ func (r *PgProjectRepository) GetOwnedProject(ctx context.Context, projectID int
 		return nil, r.handleError(err)
 	}
 
-	defer rows.Close()
-
-	for rows.Next() {
-		var u dto.UserEmailAndID
-		if err := rows.Scan(&u.ID, &u.Email); err != nil {
-			return nil, r.handleError(err)
+	members, err := ScanRows(rows, func(r pgx.Rows) (*dto.UserEmailAndID, error) {
+		var item dto.UserEmailAndID
+		if err := r.Scan(&item.ID, &item.Email); err != nil {
+			return nil, err
 		}
-		item.Members = append(item.Members, &u)
-
-	}
-	if err := rows.Err(); err != nil {
+		return &item, nil
+	})
+	if err != nil {
 		return nil, r.handleError(err)
 	}
+	item.Members = members
 
 	return &item, nil
 
@@ -157,17 +160,14 @@ func (r *PgProjectRepository) GetCandidates(ctx context.Context, ownerID int, pr
 		return nil, r.handleError(err)
 	}
 
-	defer rows.Close()
-	var items []*dto.UserSimple
-	for rows.Next() {
-		var u dto.UserSimple
-		if err := rows.Scan(&u.ID, &u.Email, &u.Username); err != nil {
-			return nil, r.handleError(err)
+	items, err := ScanRows(rows, func(r pgx.Rows) (*dto.UserSimple, error) {
+		var item dto.UserSimple
+		if err := rows.Scan(&item.ID, &item.Email, &item.Username); err != nil {
+			return nil, err
 		}
-		items = append(items, &u)
-
-	}
-	if err := rows.Err(); err != nil {
+		return &item, err
+	})
+	if err != nil {
 		return nil, r.handleError(err)
 	}
 	return items, nil

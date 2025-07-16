@@ -49,7 +49,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 
 				uc, deps := mockUseCase(ctrl)
 				mockTx(args.ctx, deps.txManager)
-				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.projectRepo.EXPECT().GetOwned(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
 				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(4)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(
@@ -74,7 +74,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 
 				uc, deps := mockUseCase(ctrl)
 				mockTx(args.ctx, deps.txManager)
-				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.projectRepo.EXPECT().GetOwned(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(
 					[]*dto.UserEmailAndID{
 						{ID: 2, Email: "test1@mail.com"},
@@ -104,7 +104,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
-				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(nil, repo.ErrNotFound)
+				deps.projectRepo.EXPECT().GetOwned(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(nil, repo.ErrNotFound)
 				return uc
 			},
 			wantErr:     true,
@@ -117,7 +117,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
-				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(nil, repo.ErrInternal)
+				deps.projectRepo.EXPECT().GetOwned(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(nil, repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
@@ -133,7 +133,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 				// mockTx(args.ctx, deps.txManager)
 				prj := *testProject
 				prj.Members = append(prj.Members, &dto.UserEmailAndID{ID: 2, Email: "test1@mail.com"})
-				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(&prj, nil)
+				deps.projectRepo.EXPECT().GetOwned(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(&prj, nil)
 				return uc
 			},
 			wantErr:     true,
@@ -147,7 +147,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 
 				uc, deps := mockUseCase(ctrl)
 				// mockTx(args.ctx, deps.txManager)
-				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.projectRepo.EXPECT().GetOwned(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(nil, repo.ErrInternal)
 				return uc
 			},
@@ -162,7 +162,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 
 				uc, deps := mockUseCase(ctrl)
 				mockTx(args.ctx, deps.txManager)
-				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.projectRepo.EXPECT().GetOwned(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
 				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(deps.errHandler.InternalTrouble(nil, "failed to register new users"))
 				return uc
@@ -178,7 +178,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 
 				uc, deps := mockUseCase(ctrl)
 				mockTx(args.ctx, deps.txManager)
-				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.projectRepo.EXPECT().GetOwned(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
 				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(4)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(nil, repo.ErrInternal)
@@ -195,7 +195,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 
 				uc, deps := mockUseCase(ctrl)
 				mockTx(args.ctx, deps.txManager)
-				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.projectRepo.EXPECT().GetOwned(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
 				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(4)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(
@@ -220,7 +220,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 
 				uc, deps := mockUseCase(ctrl)
 				mockTx(args.ctx, deps.txManager)
-				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.projectRepo.EXPECT().GetOwned(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
 				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(4)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(
@@ -246,7 +246,7 @@ func TestUseCase_AddMembers(t *testing.T) {
 
 				uc, deps := mockUseCase(ctrl)
 				mockTx(args.ctx, deps.txManager)
-				deps.projectRepo.EXPECT().GetOwnedProject(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
+				deps.projectRepo.EXPECT().GetOwned(args.ctx, args.data.ProjectID, args.data.OwnerID).Return(testProject, nil)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return([]*dto.UserEmailAndID{}, nil)
 				deps.authUC.EXPECT().AutoRegister(args.ctx, gomock.Any()).Return(nil).Times(4)
 				deps.userRepo.EXPECT().GetIdsByEmails(args.ctx, args.data.MemberEmails).Return(
