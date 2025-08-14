@@ -51,6 +51,14 @@ definitions:
     required:
     - name
     type: object
+  request.projectUpdateReq:
+    properties:
+      description:
+        type: string
+      name:
+        maxLength: 254
+        type: string
+    type: object
   request.resetPasswordReq:
     properties:
       password:
@@ -105,7 +113,7 @@ definitions:
       id:
         type: integer
     type: object
-  response.projectRes:
+  response.projectListRes:
     properties:
       createdAt:
         type: string
@@ -117,6 +125,45 @@ definitions:
         type: string
       tasksCount:
         type: integer
+    type: object
+  response.projectMemberRes:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      permissions:
+        items:
+          type: string
+        type: array
+      username:
+        type: string
+    type: object
+  response.projectRes:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+      tasksCount:
+        type: integer
+    type: object
+  response.userSimpleRes:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      username:
+        type: string
     type: object
 info:
   contact:
@@ -379,7 +426,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/response.projectRes'
+              $ref: '#/definitions/response.projectListRes'
             type: array
         "401":
           description: authentication required
@@ -429,6 +476,37 @@ paths:
       tags:
       - /v1/project
   /v1/projects/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: project id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "404":
+          description: project not found
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      security:
+      - BearerAuth: []
+      summary: delete project by id
+      tags:
+      - /v1/project
     get:
       consumes:
       - application/json
@@ -459,7 +537,107 @@ paths:
       summary: get project by id
       tags:
       - /v1/project
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: project id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: ' '
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.projectUpdateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      security:
+      - BearerAuth: []
+      summary: update project by id
+      tags:
+      - /v1/project
+  /v1/projects/{id}/leave:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: project id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "404":
+          description: project not found
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      security:
+      - BearerAuth: []
+      summary: leave from project by id
+      tags:
+      - /v1/project
   /v1/projects/{id}/members:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: project id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.projectMemberRes'
+            type: array
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "404":
+          description: project not found
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      security:
+      - BearerAuth: []
+      summary: get project members
+      tags:
+      - /v1/project
     post:
       consumes:
       - application/json
@@ -495,6 +673,43 @@ paths:
       summary: add new members to project
       tags:
       - /v1/project
+  /v1/projects/{id}/members/{memberId}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: project id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: member id
+        in: path
+        name: memberId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: authentication required
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "403":
+          description: access denied
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "404":
+          description: project not found
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      security:
+      - BearerAuth: []
+      summary: kick user from project
+      tags:
+      - /v1/project
   /v1/projects/candidates:
     get:
       consumes:
@@ -513,7 +728,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/response.projectRes'
+              $ref: '#/definitions/response.userSimpleRes'
             type: array
         "401":
           description: authentication required

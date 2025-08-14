@@ -26,7 +26,15 @@ func TestUseCase_GetByID(t *testing.T) {
 	ctx := context.Background()
 	testArgs :=
 		args{ctx: ctx, projectID: 1, memberID: 1}
-	retVal := dto.ProjectRes{ID: 1, Name: "Test", Description: "Test", TaskCount: 0, CreatedAt: time.Now()}
+	dbProject := dto.ProjectListRes{ID: 1, Name: "Test", Description: "Test", TaskCount: 0, CreatedAt: time.Now()}
+	want := dto.ProjectRes{
+		ID:          dbProject.ID,
+		Name:        dbProject.Name,
+		Description: dbProject.Description,
+		TaskCount:   dbProject.TaskCount,
+		CreatedAt:   dbProject.CreatedAt,
+		Permissions: []string{"11", "p2"},
+	}
 	tests := []struct {
 		name        string
 		uc          func(ctrl *gomock.Controller, args args) *project.UseCase
@@ -42,11 +50,12 @@ func TestUseCase_GetByID(t *testing.T) {
 			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
-				deps.projectRepo.EXPECT().IsMember(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-				deps.projectRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(&retVal, nil)
+				deps.projectRepo.EXPECT().VerifyMembership(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				deps.projectRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(&dbProject, nil)
+				deps.projectRepo.EXPECT().GetMemberRights(gomock.Any(), gomock.Any(), gomock.Any()).Return(want.Permissions, nil)
 				return uc
 			},
-			want:    &retVal,
+			want:    &want,
 			wantErr: false,
 		},
 		{
@@ -55,12 +64,12 @@ func TestUseCase_GetByID(t *testing.T) {
 			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
-				deps.projectRepo.EXPECT().IsMember(gomock.Any(), gomock.Any(), gomock.Any()).Return(repo.ErrNotFound)
+				deps.projectRepo.EXPECT().VerifyMembership(gomock.Any(), gomock.Any(), gomock.Any()).Return(repo.ErrNotFound)
 				return uc
 			},
 			wantErr:     true,
 			wantErrType: customerrors.NotFoundErr,
-			wantErrMsg:  "project not found",
+			wantErrMsg:  "project or user not found",
 		},
 		{
 			name: "failed to verify user membership",
@@ -68,7 +77,7 @@ func TestUseCase_GetByID(t *testing.T) {
 			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
-				deps.projectRepo.EXPECT().IsMember(gomock.Any(), gomock.Any(), gomock.Any()).Return(repo.ErrInternal)
+				deps.projectRepo.EXPECT().VerifyMembership(gomock.Any(), gomock.Any(), gomock.Any()).Return(repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
@@ -76,32 +85,33 @@ func TestUseCase_GetByID(t *testing.T) {
 			wantErrMsg:  "failed to verify user membership",
 		},
 		{
-			name: "project not found`",
-			args: testArgs,
-			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
-
-				uc, deps := mockUseCase(ctrl)
-				deps.projectRepo.EXPECT().IsMember(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-				deps.projectRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, repo.ErrNotFound)
-				return uc
-			},
-			wantErr:     true,
-			wantErrType: customerrors.NotFoundErr,
-			wantErrMsg:  "project not found",
-		},
-		{
 			name: "failed to get project",
 			args: testArgs,
 			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
 
 				uc, deps := mockUseCase(ctrl)
-				deps.projectRepo.EXPECT().IsMember(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				deps.projectRepo.EXPECT().VerifyMembership(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				deps.projectRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
 			wantErrMsg:  "failed to get project",
+		},
+		{
+			name: "failed to get member permissions",
+			args: testArgs,
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
+
+				uc, deps := mockUseCase(ctrl)
+				deps.projectRepo.EXPECT().VerifyMembership(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				deps.projectRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(&dbProject, nil)
+				deps.projectRepo.EXPECT().GetMemberRights(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, repo.ErrInternal)
+				return uc
+			},
+			wantErr:     true,
+			wantErrType: customerrors.InternalErr,
+			wantErrMsg:  "failed to get member permissions",
 		},
 	}
 	for _, tt := range tests {

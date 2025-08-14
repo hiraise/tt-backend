@@ -44,7 +44,10 @@ func TestUseCase_Create(t *testing.T) {
 
 				uc, deps := mockUseCase(ctrl)
 				mockTx(args.ctx, deps.txManager)
-				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(1, nil)
+				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(1, nil)
+				deps.projectRepo.EXPECT().CreateRoles(gomock.Any(), gomock.Any(), gomock.Any()).Return(testRoles, nil)
+				deps.projectRepo.EXPECT().AppendPermissions(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(2)
+				deps.projectRepo.EXPECT().AddMembers(gomock.Any(), gomock.Any()).Return(nil)
 				return uc
 			},
 			want:    1,
@@ -57,7 +60,7 @@ func TestUseCase_Create(t *testing.T) {
 
 				uc, deps := mockUseCase(ctrl)
 				mockTx(args.ctx, deps.txManager)
-				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(0, repo.ErrNotFound)
+				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(0, repo.ErrNotFound)
 				return uc
 			},
 			wantErr:     true,
@@ -71,12 +74,75 @@ func TestUseCase_Create(t *testing.T) {
 
 				uc, deps := mockUseCase(ctrl)
 				mockTx(args.ctx, deps.txManager)
-				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(0, repo.ErrInternal)
+				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(0, repo.ErrInternal)
 				return uc
 			},
 			wantErr:     true,
 			wantErrType: customerrors.InternalErr,
 			wantErrMsg:  "failed to create project",
+		},
+		{
+			name: "failed to append permissions to role",
+			args: testArgs,
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
+
+				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
+				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(1, nil)
+				deps.projectRepo.EXPECT().CreateRoles(gomock.Any(), gomock.Any(), gomock.Any()).Return(testRoles, nil)
+				deps.projectRepo.EXPECT().AppendPermissions(gomock.Any(), gomock.Any(), gomock.Any()).Return(repo.ErrInternal)
+				return uc
+			},
+			wantErr:     true,
+			wantErrType: customerrors.InternalErr,
+			wantErrMsg:  "failed to append permissions to role",
+		},
+		{
+			name: "failed to find role in list",
+			args: testArgs,
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
+
+				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
+				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(1, nil)
+				deps.projectRepo.EXPECT().CreateRoles(gomock.Any(), gomock.Any(), gomock.Any()).Return([]*dto.ProjectRoleRes{}, nil)
+				return uc
+			},
+			wantErr:     true,
+			wantErrType: customerrors.InternalErr,
+			wantErrMsg:  "failed to find role in list",
+		},
+		{
+			name: "failed to add owner to project",
+			args: testArgs,
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
+
+				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
+				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(1, nil)
+				deps.projectRepo.EXPECT().CreateRoles(gomock.Any(), gomock.Any(), gomock.Any()).Return(testRoles, nil)
+				deps.projectRepo.EXPECT().AppendPermissions(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(2)
+				deps.projectRepo.EXPECT().AddMembers(gomock.Any(), gomock.Any()).Return(repo.ErrInternal)
+				return uc
+			},
+			wantErr:     true,
+			wantErrType: customerrors.InternalErr,
+			wantErrMsg:  "failed to add owner to project",
+		},
+		{
+			name: "failed to create default default project roles",
+			args: testArgs,
+			uc: func(ctrl *gomock.Controller, args args) *project.UseCase {
+
+				uc, deps := mockUseCase(ctrl)
+				mockTx(args.ctx, deps.txManager)
+				deps.projectRepo.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).Return(1, nil)
+				deps.projectRepo.EXPECT().CreateRoles(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, repo.ErrInternal)
+				return uc
+			},
+			wantErr:     true,
+			wantErrType: customerrors.InternalErr,
+			wantErrMsg:  "failed to create default default project roles",
 		},
 	}
 	for _, tt := range tests {

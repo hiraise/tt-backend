@@ -3,6 +3,8 @@ package persistent
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"task-trail/internal/repo"
 
 	"github.com/jackc/pgx/v5"
@@ -43,7 +45,38 @@ func (r *PgRepostitory) handleError(e error) error {
 	return repo.Wrap(repo.ErrInternal, e)
 }
 
-func ScanRows[T any](rows pgx.Rows, f func(r pgx.Rows) (*T, error)) ([]*T, error) {
+func (r *PgRepostitory) updateByID(ctx context.Context, table string, id int, data map[string]any) error {
+	rows := make([]string, 0, len(data))
+	values := make([]any, 0, len(data)+1)
+	i := 1
+	for k, v := range data {
+		rows = append(rows, fmt.Sprintf("%s = $%d", k, i))
+		values = append(values, v)
+		i++
+	}
+	values = append(values, id)
+
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE id = $%d AND deleted_at IS NULL;", table, strings.Join(rows, ", "), i)
+
+	tag, err := r.getDb(ctx).Exec(ctx, query, values...)
+	if err != nil {
+		return r.handleError(err)
+	}
+	if tag.RowsAffected() == 0 {
+		return repo.ErrNotFound
+	}
+	return nil
+}
+
+func (r *PgRepostitory) ensureInTransaction(ctx context.Context) error {
+	db := r.getDb(ctx)
+	if _, ok := db.(pgx.Tx); ok {
+		return nil
+	}
+	return repo.Wrap(fmt.Errorf("this operation can be execute only in transaction"), repo.ErrInternal)
+}
+
+func ScanRows[T any](rows pgx.Rows, f func(row pgx.Rows) (*T, error)) ([]*T, error) {
 	defer rows.Close()
 
 	var retVal []*T
@@ -58,4 +91,33 @@ func ScanRows[T any](rows pgx.Rows, f func(r pgx.Rows) (*T, error)) ([]*T, error
 		return nil, err
 	}
 	return retVal, nil
+}
+
+func ValidateIsNotNil[T any](v *T) error {
+	if v == nil {
+		return repo.Wrap(fmt.Errorf("value is nil"), repo.ErrValidation)
+	}
+	return nil
+}
+
+func ValidateSliceIsNotNil[T any](v *[]T, name string) error {
+	if len(*v) == 0 {
+		return repo.Wrap(fmt.Errorf("%s slice is nil or empty", name), repo.ErrValidation)
+	}
+	return nil
+}
+
+func ValidateID(v int, name string) error {
+	if v <= 0 {
+		return repo.Wrap(fmt.Errorf("%s is below or equal 0", name), repo.ErrValidation)
+	}
+	return nil
+}
+func ValidateIDsMap(data map[string]int) error {
+	for k, v := range data {
+		if v <= 0 {
+			return repo.Wrap(fmt.Errorf("%s is below or equal 0", k), repo.ErrValidation)
+		}
+	}
+	return nil
 }

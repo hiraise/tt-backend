@@ -14,7 +14,7 @@ import (
 type Authentication interface {
 	Login(ctx context.Context, data *dto.Credentials) (*dto.LoginRes, error)
 	Register(ctx context.Context, data *dto.Credentials) error
-	AutoRegister(ctx context.Context, email string) error
+	AutoRegister(ctx context.Context, email string) (int, error)
 	Logout(ctx context.Context, refreshToken string) error
 	Refresh(ctx context.Context, refreshToken string) (*dto.RefreshRes, error)
 	Verify(ctx context.Context, tokenID string) error
@@ -42,8 +42,13 @@ type File interface {
 
 type Project interface {
 	Create(ctx context.Context, data *dto.ProjectCreate) (int, error)
-	GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error)
+	GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectListRes, error)
 	GetByID(ctx context.Context, projectID int, memberID int) (*dto.ProjectRes, error)
 	AddMembers(ctx context.Context, data *dto.ProjectAddMembers) error
 	GetCandidates(ctx context.Context, ownerID int, projectID int) ([]*dto.UserSimple, error)
+	UpdateByID(ctx context.Context, projectID int, userID int, data *dto.ProjectUpdate) error
+	GetMembers(ctx context.Context, projectID int, userID int) ([]*dto.ProjectMember, error)
+	Delete(ctx context.Context, projectID int, memberID int) error
+	Leave(ctx context.Context, projectID int, memberID int) error
+	KickMember(ctx context.Context, projectID int, requesterID int, memberID int) error
 }

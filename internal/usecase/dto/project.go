@@ -1,12 +1,13 @@
 package dto
 
-import "time"
+import (
+	"time"
+)
 
 type Project struct {
 	ID          int
 	Name        string
 	Description string
-	OwnerID     int
 	CreatedAt   time.Time
 	Members     []*UserEmailAndID
 }
@@ -18,13 +19,14 @@ type ProjectCreate struct {
 }
 
 type ProjectList struct {
-	MemberID   int
+	UserID     int
 	IsArchived bool
 }
 
 type ProjectAddMembersDB struct {
-	MemberIDs []int
+	UserID    int
 	ProjectID int
+	RoleID    int
 }
 
 type ProjectAddMembers struct {
@@ -33,7 +35,24 @@ type ProjectAddMembers struct {
 	OwnerID      int
 }
 
+type ProjectRoleCreate struct {
+	Name        string
+	Permissions []string
+}
+type ProjectUpdate struct {
+	Name        string
+	Description string
+}
+
 // response
+
+type ProjectListRes struct {
+	ID          int
+	Name        string
+	Description string
+	CreatedAt   time.Time
+	TaskCount   int
+}
 
 type ProjectRes struct {
 	ID          int
@@ -41,4 +60,21 @@ type ProjectRes struct {
 	Description string
 	CreatedAt   time.Time
 	TaskCount   int
+	Permissions []string
+}
+type ProjectRoleRes struct {
+	ID   int
+	Name string
+}
+
+type ProjectMember struct {
+	ID          int
+	Email       string
+	Username    *string
+	Permissions []string
+}
+
+type ProjectRights struct {
+	Role        string
+	Permissions []string
 }

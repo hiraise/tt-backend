@@ -8,11 +8,12 @@ import (
 func (u *UseCase) GetCandidates(ctx context.Context, ownerID int, projectID int) ([]*dto.UserSimple, error) {
 	// if project id is passed, verify users membership
 	if projectID != 0 {
-		if err := u.CheckMembership(ctx, projectID, ownerID); err != nil {
+		// user must have access to invite users to get list of candidates
+		if err := u.VerifyAccess(ctx, projectID, ownerID, PROJECT_INVITE_USERS); err != nil {
 			return nil, err
 		}
 	}
-	res, err := u.projectRepo.GetCandidates(ctx, ownerID, projectID)
+	res, err := u.projectRepo.GetCandidates(ctx, ownerID, PROJECT_GET_CANDIDATES, projectID)
 	if err != nil {
 		return nil, u.errHandler.InternalTrouble(
 			err,

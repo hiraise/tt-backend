@@ -42,11 +42,12 @@ func (m *MockAuthentication) EXPECT() *MockAuthenticationMockRecorder {
 }
 
 // AutoRegister mocks base method.
-func (m *MockAuthentication) AutoRegister(ctx context.Context, email string) error {
+func (m *MockAuthentication) AutoRegister(ctx context.Context, email string) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AutoRegister", ctx, email)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AutoRegister indicates an expected call of AutoRegister.
@@ -344,6 +345,20 @@ func (mr *MockProjectMockRecorder) Create(ctx, data any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockProject)(nil).Create), ctx, data)
 }
 
+// Delete mocks base method.
+func (m *MockProject) Delete(ctx context.Context, projectID, memberID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, projectID, memberID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockProjectMockRecorder) Delete(ctx, projectID, memberID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockProject)(nil).Delete), ctx, projectID, memberID)
+}
+
 // GetByID mocks base method.
 func (m *MockProject) GetByID(ctx context.Context, projectID, memberID int) (*dto.ProjectRes, error) {
 	m.ctrl.T.Helper()
@@ -375,10 +390,10 @@ func (mr *MockProjectMockRecorder) GetCandidates(ctx, ownerID, projectID any) *g
 }
 
 // GetList mocks base method.
-func (m *MockProject) GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectRes, error) {
+func (m *MockProject) GetList(ctx context.Context, data *dto.ProjectList) ([]*dto.ProjectListRes, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetList", ctx, data)
-	ret0, _ := ret[0].([]*dto.ProjectRes)
+	ret0, _ := ret[0].([]*dto.ProjectListRes)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -387,4 +402,47 @@ func (m *MockProject) GetList(ctx context.Context, data *dto.ProjectList) ([]*dt
 func (mr *MockProjectMockRecorder) GetList(ctx, data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*MockProject)(nil).GetList), ctx, data)
+}
+
+// GetMembers mocks base method.
+func (m *MockProject) GetMembers(ctx context.Context, projectID, userID int) ([]*dto.ProjectMember, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMembers", ctx, projectID, userID)
+	ret0, _ := ret[0].([]*dto.ProjectMember)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMembers indicates an expected call of GetMembers.
+func (mr *MockProjectMockRecorder) GetMembers(ctx, projectID, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMembers", reflect.TypeOf((*MockProject)(nil).GetMembers), ctx, projectID, userID)
+}
+
+// Leave mocks base method.
+func (m *MockProject) Leave(ctx context.Context, projectID, memberID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Leave", ctx, projectID, memberID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Leave indicates an expected call of Leave.
+func (mr *MockProjectMockRecorder) Leave(ctx, projectID, memberID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Leave", reflect.TypeOf((*MockProject)(nil).Leave), ctx, projectID, memberID)
+}
+
+// UpdateByID mocks base method.
+func (m *MockProject) UpdateByID(ctx context.Context, projectID, userID int, data *dto.ProjectUpdate) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateByID", ctx, projectID, userID, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateByID indicates an expected call of UpdateByID.
+func (mr *MockProjectMockRecorder) UpdateByID(ctx, projectID, userID, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByID", reflect.TypeOf((*MockProject)(nil).UpdateByID), ctx, projectID, userID, data)
 }
