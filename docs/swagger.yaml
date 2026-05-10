@@ -32,33 +32,6 @@ definitions:
     required:
     - email
     type: object
-  request.projectAddMembersReq:
-    properties:
-      emails:
-        items:
-          type: string
-        type: array
-    required:
-    - emails
-    type: object
-  request.projectCreateReq:
-    properties:
-      description:
-        type: string
-      name:
-        maxLength: 254
-        type: string
-    required:
-    - name
-    type: object
-  request.projectUpdateReq:
-    properties:
-      description:
-        type: string
-      name:
-        maxLength: 254
-        type: string
-    type: object
   request.resetPasswordReq:
     properties:
       password:
@@ -70,12 +43,6 @@ definitions:
     required:
     - password
     - token
-    type: object
-  request.updateReq:
-    properties:
-      username:
-        maxLength: 100
-        type: string
     type: object
   request.verifyReq:
     properties:
@@ -92,79 +59,6 @@ definitions:
       msg:
         type: string
     type: object
-  response.avatarRes:
-    properties:
-      avatarUrl:
-        type: string
-    type: object
-  response.currentRes:
-    properties:
-      avatarUrl:
-        type: string
-      email:
-        type: string
-      id:
-        type: integer
-      username:
-        type: string
-    type: object
-  response.projectCreateRes:
-    properties:
-      id:
-        type: integer
-    type: object
-  response.projectListRes:
-    properties:
-      createdAt:
-        type: string
-      description:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      tasksCount:
-        type: integer
-    type: object
-  response.projectMemberRes:
-    properties:
-      email:
-        type: string
-      id:
-        type: integer
-      permissions:
-        items:
-          type: string
-        type: array
-      username:
-        type: string
-    type: object
-  response.projectRes:
-    properties:
-      createdAt:
-        type: string
-      description:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      permissions:
-        items:
-          type: string
-        type: array
-      tasksCount:
-        type: integer
-    type: object
-  response.userSimpleRes:
-    properties:
-      email:
-        type: string
-      id:
-        type: integer
-      username:
-        type: string
-    type: object
 info:
   contact:
     email: musaev.ae@hiraise.net
@@ -176,7 +70,7 @@ info:
   title: Task Trail API
   version: "1.0"
 paths:
-  /v1/auth/check:
+  /v1/access/check:
     get:
       consumes:
       - application/json
@@ -193,8 +87,8 @@ paths:
       - BearerAuth: []
       summary: check user authentication
       tags:
-      - /v1/auth
-  /v1/auth/login:
+      - /v1/access
+  /v1/access/login:
     post:
       consumes:
       - application/json
@@ -222,10 +116,10 @@ paths:
           description: internal error
           schema:
             $ref: '#/definitions/response.ErrAPI'
-      summary: login user
+      summary: login
       tags:
-      - /v1/auth
-  /v1/auth/logout:
+      - /v1/access
+  /v1/access/logout:
     post:
       consumes:
       - application/json
@@ -235,20 +129,22 @@ paths:
         "200":
           description: OK
         "401":
-          description: authentication required
+          description: invalid token
           schema:
             $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: logout user
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      summary: logout
       tags:
-      - /v1/auth
-  /v1/auth/password/change:
+      - /v1/access
+  /v1/access/password/change:
     post:
       consumes:
       - application/json
       parameters:
-      - description: old and new password
+      - description: old and new passoword
         in: body
         name: body
         required: true
@@ -263,15 +159,23 @@ paths:
           description: invalid request body
           schema:
             $ref: '#/definitions/response.ErrAPI'
+        "401":
+          description: invalid token
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
       summary: change user password
       tags:
-      - /v1/auth
-  /v1/auth/password/forgot:
+      - /v1/access
+  /v1/access/password/reset:
     post:
       consumes:
       - application/json
       parameters:
-      - description: user email
+      - description: email
         in: body
         name: body
         required: true
@@ -286,10 +190,18 @@ paths:
           description: invalid request body
           schema:
             $ref: '#/definitions/response.ErrAPI'
-      summary: send reset password email
+        "401":
+          description: invalid email
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      summary: reset user password
       tags:
-      - /v1/auth
-  /v1/auth/password/reset:
+      - /v1/access
+  /v1/access/password/reset/confirm:
     post:
       consumes:
       - application/json
@@ -309,10 +221,18 @@ paths:
           description: invalid request body
           schema:
             $ref: '#/definitions/response.ErrAPI'
-      summary: reset user password
+        "401":
+          description: invalid token
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      summary: confirm reset user password
       tags:
-      - /v1/auth
-  /v1/auth/refresh:
+      - /v1/access
+  /v1/access/refresh:
     post:
       consumes:
       - application/json
@@ -322,17 +242,17 @@ paths:
         "200":
           description: OK
         "401":
-          description: refresh token is invalid
+          description: invalid token
           schema:
             $ref: '#/definitions/response.ErrAPI'
         "500":
           description: internal error
           schema:
             $ref: '#/definitions/response.ErrAPI'
-      summary: refresh tokens pair
+      summary: refresh user session
       tags:
-      - /v1/auth
-  /v1/auth/register:
+      - /v1/access
+  /v1/access/register:
     post:
       consumes:
       - application/json
@@ -363,13 +283,44 @@ paths:
             $ref: '#/definitions/response.ErrAPI'
       summary: register new user
       tags:
-      - /v1/auth
-  /v1/auth/resend-verification:
+      - /v1/access
+  /v1/access/verify:
     post:
       consumes:
       - application/json
       parameters:
-      - description: user email
+      - description: verification token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.verifyReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: invalid request body
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "401":
+          description: invalid token
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/response.ErrAPI'
+      summary: verfiy user
+      tags:
+      - /v1/access
+  /v1/access/verify/resend:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: email
         in: body
         name: body
         required: true
@@ -384,465 +335,17 @@ paths:
           description: invalid request body
           schema:
             $ref: '#/definitions/response.ErrAPI'
-      summary: resend account verification email
-      tags:
-      - /v1/auth
-  /v1/auth/verify:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: token
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/request.verifyReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: token is invalid
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "404":
-          description: token or user not found
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      summary: verify user account
-      tags:
-      - /v1/auth
-  /v1/projects:
-    get:
-      consumes:
-      - application/json
-      description: List of projects where current user is a member or owner
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/response.projectListRes'
-            type: array
         "401":
-          description: authentication required
+          description: invalid email
           schema:
             $ref: '#/definitions/response.ErrAPI'
-        "404":
-          description: user not found
+        "500":
+          description: internal error
           schema:
             $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: get list of projects
+      summary: resend verification
       tags:
-      - /v1/project
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: project data
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/request.projectCreateReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.projectCreateRes'
-        "400":
-          description: invalid request body
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "404":
-          description: user not found
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: create new project
-      tags:
-      - /v1/project
-  /v1/projects/{id}:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: project id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "403":
-          description: access denied
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "404":
-          description: project not found
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: delete project by id
-      tags:
-      - /v1/project
-    get:
-      consumes:
-      - application/json
-      description: Project by id, where current user is a member
-      parameters:
-      - description: project id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.projectRes'
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "404":
-          description: project not found
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: get project by id
-      tags:
-      - /v1/project
-    patch:
-      consumes:
-      - application/json
-      parameters:
-      - description: project id
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: ' '
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/request.projectUpdateReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "403":
-          description: access denied
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: update project by id
-      tags:
-      - /v1/project
-  /v1/projects/{id}/leave:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: project id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "403":
-          description: access denied
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "404":
-          description: project not found
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: leave from project by id
-      tags:
-      - /v1/project
-  /v1/projects/{id}/members:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: project id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/response.projectMemberRes'
-            type: array
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "403":
-          description: access denied
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "404":
-          description: project not found
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: get project members
-      tags:
-      - /v1/project
-    post:
-      consumes:
-      - application/json
-      description: validate list of candidates, create accounts if they do not exist
-        yet, and add them to the project
-      parameters:
-      - description: project id
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: emails
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/request.projectAddMembersReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "404":
-          description: user not found
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: add new members to project
-      tags:
-      - /v1/project
-  /v1/projects/{id}/members/{memberId}:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: project id
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: member id
-        in: path
-        name: memberId
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "403":
-          description: access denied
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "404":
-          description: project not found
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: kick user from project
-      tags:
-      - /v1/project
-  /v1/projects/candidates:
-    get:
-      consumes:
-      - application/json
-      description: Candidates are participatns in other projects owned by the current
-        user
-      parameters:
-      - description: project id
-        in: query
-        name: id
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/response.userSimpleRes'
-            type: array
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "404":
-          description: project not found
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: get list of candidates to add to the project
-      tags:
-      - /v1/project
-  /v1/users/{id}:
-    get:
-      consumes:
-      - application/json
-      description: '...'
-      parameters:
-      - description: user id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - BearerAuth: []
-      summary: return user by id
-      tags:
-      - /v1/users
-  /v1/users/me:
-    get:
-      consumes:
-      - application/json
-      description: '...'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.currentRes'
-      security:
-      - BearerAuth: []
-      summary: return current user
-      tags:
-      - /v1/users
-    patch:
-      consumes:
-      - application/json
-      description: '...'
-      parameters:
-      - description: user data
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/request.updateReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.currentRes'
-        "400":
-          description: invalid request body
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-        "404":
-          description: user not found
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: update current user
-      tags:
-      - /v1/users
-  /v1/users/me/avatar:
-    patch:
-      consumes:
-      - application/json
-      description: '...'
-      parameters:
-      - description: new file
-        in: formData
-        name: file
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.avatarRes'
-        "401":
-          description: authentication required
-          schema:
-            $ref: '#/definitions/response.ErrAPI'
-      security:
-      - BearerAuth: []
-      summary: upload new avatar
-      tags:
-      - /v1/users
+      - /v1/access
 securityDefinitions:
   BearerAuth:
     in: cookie
